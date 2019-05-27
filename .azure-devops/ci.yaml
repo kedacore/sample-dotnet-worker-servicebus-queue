@@ -1,0 +1,32 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+resources:
+- repo: self
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/*
+    - .azure-devops/ci.yaml
+variables:
+  DotNet.SDK.Version: '3.0.100-preview5-011568'
+stages:
+- stage: Codebase
+  dependsOn: []
+  jobs:
+   - job: Build
+     displayName: Build Codebase
+     condition: succeeded()
+     pool:
+       vmImage: ubuntu-16.04
+     steps:
+     - task: DotNetCoreInstaller@0
+       displayName: 'Install .NET SDK'
+       inputs:
+         version: '$(DotNet.SDK.Version)'
+     - task: DotNetCoreCLI@2
+       displayName: 'dotnet build'
+       inputs:
+         projects: src/Keda.Samples.Dotnet.sln
+         arguments: '--configuration release'
