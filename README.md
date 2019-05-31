@@ -13,5 +13,34 @@ _The sample can also be ran locally on Docker without KEDA, read our [documentat
 - [KEDA installed](https://github.com/kedacore/keda#setup) on the cluster
 
 ## Setup
-
 Coming soon.
+
+### Create an Azure Service Bus Namespace & Queue
+
+```cli
+az servicebus namespace create --name <namespace-name> --resource-group <resource-group-name> --sku basic
+az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
+```
+
+
+## Cleaning up resources
+
+#### Delete the Order Processor
+
+```cli
+kubectl delete -f .\deploy\deploy-queue-processor.yaml
+```
+
+#### Delete the Azure Service Bus namespace
+
+```cli
+az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
+```
+
+#### Uninstall KEDA
+
+```cli
+helm delete --purge keda
+kubectl delete customresourcedefinition  scaledobjects.keda.k8s.io
+kubectl delete namespace keda
+```
