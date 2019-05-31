@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0.100-preview5-alpine AS build
 WORKDIR /src
 COPY ["Keda.Samples.Dotnet.QueueWorker/Keda.Samples.Dotnet.QueueWorker.csproj", "Keda.Samples.Dotnet.QueueWorker/"]
+COPY ["Keda.Samples.Dotnet.Contracts/Keda.Samples.Dotnet.Contracts.csproj", "Keda.Samples.Dotnet.Contracts/"]
 RUN dotnet restore "Keda.Samples.Dotnet.QueueWorker/Keda.Samples.Dotnet.QueueWorker.csproj"
 COPY . .
 WORKDIR "/src/Keda.Samples.Dotnet.QueueWorker"

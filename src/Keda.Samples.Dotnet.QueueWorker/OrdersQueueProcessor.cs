@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Keda.Samples.Dotnet.QueueWorker.Contracts;
+using Keda.Samples.Dotnet.Contracts;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ namespace Keda.Samples.Dotnet.QueueWorker
         {
             Logger.LogInformation("Processing order {OrderId} for {OrderAmount} units of {OrderArticle} bought by {CustomerFirstName} {CustomerLastName} at: {Time}", order.Id, order.Amount, order.ArticleNumber, order.Customer.FirstName, order.Customer.LastName, DateTimeOffset.UtcNow);
 
-            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
             Logger.LogInformation("Order {OrderId} processed at: {Time}", order.Id, DateTimeOffset.UtcNow);
         }

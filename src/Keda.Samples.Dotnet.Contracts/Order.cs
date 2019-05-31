@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Keda.Samples.Dotnet.QueueWorker.Contracts
+namespace Keda.Samples.Dotnet.Contracts
 {
     public class Order
     {
