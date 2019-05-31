@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-processor
+  labels:
+    app: order-processor
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+  template:
+    metadata:
+      labels:
+        app: order-processor
+    spec:
+      containers:
+      - name: order-processor
+        image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue
+        env:
+        - name: KEDA_SERVICEBUS_CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+             name: order-secrets
+             key: SERVICEBUS_CONNECTIONSTRING
+        - name: KEDA_SERVICEBUS_QUEUENAME
+          value: orders
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-secrets
+  labels:
+    app: order-processor
+data:
+  SERVICEBUS_CONNECTIONSTRING: RW5kcG9pbnQ9c2I6Ly9rZWRhLXNhbmRib3guc2VydmljZWJ1cy53aW5kb3dzLm5ldC87U2hhcmVkQWNjZXNzS2V5TmFtZT1Sb290TWFuYWdlU2hhcmVkQWNjZXNzS2V5O1NoYXJlZEFjY2Vzc0tleT1xTUNGTVhiSmVYempXbDVtbmlYdHBYWm8wUHk2QWRwRjJMNG04K2hhYXB3PQo=
