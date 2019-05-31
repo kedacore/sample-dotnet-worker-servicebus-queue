@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <UserSecretsId>dotnet-Keda.Samples.Dotnet.QueueWorker-66DA86C6-2D78-49E0-9A8D-670D36B29090</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
