@@ -1,6 +1,8 @@
 name: $(Date:yyyyMMdd)$(Rev:.r)
 resources:
 - repo: self
+trigger:
+- master
 pr:
   branches:
     include:
@@ -65,6 +67,14 @@ stages:
          repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
          Dockerfile: src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile
          buildContext: src/
+         tags: latest
+         arguments: '--no-cache'
+     - task: Docker@2
+       displayName: 'Push Docker image'
+       inputs:
+         command: push
+         containerRegistry: 'Docker Hub - tomkerkhove'
+         repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
          tags: latest
          arguments: '--no-cache'
        condition: ne(variables['Build.Reason'], 'PullRequest')
