@@ -4,5 +4,13 @@ A simple Docker container written in .NET that will receive messages from a Serv
 ## Pre-requisites
 
 - Azure Subscription
+- .NET Core 3.0 Preview 5
 - Kubernetes cluster
 - [KEDA installed](https://github.com/kedacore/keda#setup) on the cluster
+
+## Building the sample
+
+```shell
+⚡ tkerkhove@tomkerkhove C:\keda
+❯ dotnet build .\src\Keda.Samples.Dotnet.sln
+```
