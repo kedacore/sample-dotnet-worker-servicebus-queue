@@ -3,17 +3,17 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0.100-preview5-alpine AS build
 WORKDIR /src
-COPY ["Keda.Samples.Dotnet.QueueWorker/Keda.Samples.Dotnet.QueueWorker.csproj", "Keda.Samples.Dotnet.QueueWorker/"]
+COPY ["Keda.Samples.Dotnet.OrderProcessor/Keda.Samples.Dotnet.OrderProcessor.csproj", "Keda.Samples.Dotnet.OrderProcessor/"]
 COPY ["Keda.Samples.Dotnet.Contracts/Keda.Samples.Dotnet.Contracts.csproj", "Keda.Samples.Dotnet.Contracts/"]
-RUN dotnet restore "Keda.Samples.Dotnet.QueueWorker/Keda.Samples.Dotnet.QueueWorker.csproj"
+RUN dotnet restore "Keda.Samples.Dotnet.OrderProcessor/Keda.Samples.Dotnet.OrderProcessor.csproj"
 COPY . .
-WORKDIR "/src/Keda.Samples.Dotnet.QueueWorker"
-RUN dotnet build "Keda.Samples.Dotnet.QueueWorker.csproj" -c Release -o /app
+WORKDIR "/src/Keda.Samples.Dotnet.OrderProcessor"
+RUN dotnet build "Keda.Samples.Dotnet.OrderProcessor.csproj" -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish "Keda.Samples.Dotnet.QueueWorker.csproj" -c Release -o /app
+RUN dotnet publish "Keda.Samples.Dotnet.OrderProcessor.csproj" -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Keda.Samples.Dotnet.QueueWorker.dll"]
+ENTRYPOINT ["dotnet", "Keda.Samples.Dotnet.OrderProcessor.dll"]

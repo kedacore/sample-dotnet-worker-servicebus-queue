@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Keda.Samples.Dotnet.Contracts;
+using Keda.Samples.Dotnet.OrderProcessor;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Keda.Samples.Dotnet.QueueWorker
+namespace Keda.Samples.Dotnet.OrderProcessor
 {
     public class OrdersQueueProcessor : QueueWorker<Order>
     {

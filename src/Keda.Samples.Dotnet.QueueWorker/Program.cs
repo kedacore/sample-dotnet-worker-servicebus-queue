@@ -1,8 +1,9 @@
+using Keda.Samples.Dotnet.OrderProcessor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Keda.Samples.Dotnet.QueueWorker
+namespace Keda.Samples.Dotnet.OrderProcessor
 {
     public class Program
     {

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Keda.Samples.Dotnet.QueueWorker
+namespace Keda.Samples.Dotnet.OrderProcessor
 {
     public abstract class QueueWorker<TMessage> : BackgroundService
     {

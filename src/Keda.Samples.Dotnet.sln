@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28917.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keda.Samples.Dotnet.QueueWorker", "Keda.Samples.Dotnet.QueueWorker\Keda.Samples.Dotnet.QueueWorker.csproj", "{FF49EDEA-8A38-4861-845E-2689CB8C3F12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keda.Samples.Dotnet.OrderProcessor", "Keda.Samples.Dotnet.OrderProcessor\Keda.Samples.Dotnet.OrderProcessor.csproj", "{FF49EDEA-8A38-4861-845E-2689CB8C3F12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keda.Samples.Dotnet.OrderGenerator", "Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj", "{8525AEE5-8128-4868-91BF-72999A9E48FB}"
 EndProject
