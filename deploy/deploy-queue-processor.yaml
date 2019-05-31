@@ -17,11 +17,14 @@ spec:
       - name: order-processor
         image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue
         env:
+        # Currently having issues via the Secret approach, see https://github.com/kedacore/keda/issues/243
+        #- name: KEDA_SERVICEBUS_CONNECTIONSTRING
+        #  valueFrom:
+        #    secretKeyRef:
+        #     name: order-secrets
+        #     key: SERVICEBUS_CONNECTIONSTRING
         - name: KEDA_SERVICEBUS_CONNECTIONSTRING
-          valueFrom:
-            secretKeyRef:
-             name: order-secrets
-             key: SERVICEBUS_CONNECTIONSTRING
+          value: "Endpoint=sb://keda-sandbox.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qMCFMXbJeXzjWl5mniXtpXZo0Py6AdpF2L4m8+haapw="
         - name: KEDA_SERVICEBUS_QUEUENAME
           value: orders
 ---
