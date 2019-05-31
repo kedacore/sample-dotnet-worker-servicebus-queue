@@ -3,6 +3,8 @@ A simple Docker container written in .NET that will receive messages from a Serv
 
 The message processor will receive a single message at a time (per instance), and sleep for 2 second to simulate performing work. When adding a massive amount of queue messages, KEDA will drive the container to scale out according to the event source (Service Bus Queue).
 
+_The sample can also be ran locally on Docker without KEDA, read our [documentation here](./src/)._
+
 ## Pre-requisites
 
 - .NET Core 3.0 Preview 5
@@ -13,5 +15,3 @@ The message processor will receive a single message at a time (per instance), an
 ## Setup
 
 Coming soon.
-
-Read our [documentation here](./src/) on how to run it locally on Docker.
