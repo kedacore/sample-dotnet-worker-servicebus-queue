@@ -1,0 +1,64 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+resources:
+- repo: self
+trigger:
+- master
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/*
+    - .azure-devops/ci.yaml
+variables:
+  DotNet.SDK.Version: '3.0.100-preview5-011568'
+  Image.Name: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+stages:
+- stage: OrderGenerator
+  dependsOn: []
+  displayName: Order Generator
+  jobs:
+   - job: Build
+     displayName: Build Codebase
+     condition: succeeded()
+     pool:
+       vmImage: ubuntu-16.04
+     steps:
+     - task: DotNetCoreInstaller@0
+       displayName: 'Install .NET SDK'
+       inputs:
+         version: '$(DotNet.SDK.Version)'
+     - task: DotNetCoreCLI@2
+       displayName: 'dotnet build'
+       inputs:
+         projects: src/Keda.Samples.Dotnet.OrderGenerator/Keda.Samples.Dotnet.OrderGenerator.csproj
+         arguments: '--configuration release'
+- stage: OrderProcessor
+  dependsOn: []
+  displayName: Order Processor
+  jobs:
+   - job: Docker
+     displayName: Docker Image
+     condition: succeeded()
+     pool:
+       vmImage: ubuntu-16.04
+     steps:
+     - task: Docker@2
+       displayName: 'Build Docker image'
+       inputs:
+         command: build
+         containerRegistry: 'Docker Hub - tomkerkhove'
+         repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+         Dockerfile: src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile
+         buildContext: src/
+         tags: latest
+         arguments: '--no-cache'
+     - task: Docker@2
+       displayName: 'Push Docker image'
+       inputs:
+         command: push
+         containerRegistry: 'Docker Hub - tomkerkhove'
+         repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+         tags: latest
+       condition: ne(variables['Build.Reason'], 'PullRequest')
