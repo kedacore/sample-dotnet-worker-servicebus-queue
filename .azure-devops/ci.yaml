@@ -38,21 +38,6 @@ stages:
   dependsOn: []
   displayName: Order Processor
   jobs:
-   - job: Codebase
-     displayName: Codebase
-     condition: succeeded()
-     pool:
-       vmImage: ubuntu-16.04
-     steps:
-     - task: DotNetCoreInstaller@0
-       displayName: 'Install .NET SDK'
-       inputs:
-         version: '$(DotNet.SDK.Version)'
-     - task: DotNetCoreCLI@2
-       displayName: 'dotnet build'
-       inputs:
-         projects: src/Keda.Samples.Dotnet.OrderProcessor/Keda.Samples.Dotnet.OrderProcessor.csproj
-         arguments: '--configuration release'
    - job: Docker
      displayName: Docker Image
      condition: succeeded()
