@@ -1,0 +1,16 @@
+{
+  "branchPrefix":"renovate-",
+  "separateMajorMinor": false,
+  "labels":["dependencies"],
+  "assignees": ["@tomkerkhove"],
+  "ignoreDeps":[],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "extends": [
+    "config:base",
+    "default:pinDigestsDisabled"
+  ],
+  "nuget": {
+    "enabled": true
+   }
+}
