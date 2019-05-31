@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -12,9 +13,13 @@ namespace Keda.Samples.Dotnet.QueueWorker
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddEnvironmentVariables();
+                })
                 .ConfigureServices(services =>
                 {
-                    services.AddHostedService<Worker>();
+                    services.AddHostedService<OrdersQueueProcessor>();
                 });
     }
 }
