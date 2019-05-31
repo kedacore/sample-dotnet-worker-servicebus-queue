@@ -11,3 +11,5 @@ A simple Docker container written in .NET that will receive messages from a Serv
 ## Setup
 
 Coming soon.
+
+Read our [documentation here](./src/) on how to run it locally on Docker.
