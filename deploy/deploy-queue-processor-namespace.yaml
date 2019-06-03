@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-processor
+  labels:
+    app: order-processor
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+  template:
+    metadata:
+      labels:
+        app: order-processor
+    spec:
+      containers:
+      - name: order-processor
+        image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue
+        env:
+        - name: KEDA_SERVICEBUS_CONNECTIONSTRING
+          value: "Endpoint=sb://keda-sandbox.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qMCFMXbJeXzjWl5mniXtpXZo0Py6AdpF2L4m8+haapw="
+        - name: KEDA_SERVICEBUS_QUEUENAME
+          value: orders
+---
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-processor-scaler
+  labels:
+    app: order-processor
+    deploymentName: order-processor
+spec:
+  scaleTargetRef:
+    deploymentName: order-processor
+  # minReplicaCount: 0 Change to define how many minimum replicas you want
+  maxReplicaCount: 10
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      queueName: orders
+      connection: KEDA_SERVICEBUS_CONNECTIONSTRING
+      queueLength: '5'
