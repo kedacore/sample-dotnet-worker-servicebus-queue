@@ -24,10 +24,11 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_CONNECTIONSTRING");
-            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUENAME");
+            var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
 
-            var queueClient = new QueueClient(connectionString, queueName, ReceiveMode.PeekLock);
+            var serviceBusConnectionStringBuilder = new ServiceBusConnectionStringBuilder(connectionString);
+
+            var queueClient = new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath, ReceiveMode.PeekLock);
 
             Logger.LogInformation("Starting message pump at: {Time}", DateTimeOffset.UtcNow);
             queueClient.RegisterMessageHandler(HandleMessage, HandleReceivedException);

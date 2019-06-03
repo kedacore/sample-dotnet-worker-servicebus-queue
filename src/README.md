@@ -16,7 +16,7 @@ Build Docker container for order processor
 Run order processor locally
 ```shell
 ⚡ tkerkhove@tomkerkhove C:\keda-sample-dotnet-worker-servicebus-queue
-❯ docker run --detach --env KEDA_SERVICEBUS_CONNECTIONSTRING="<connection-string>" --env KEDA_SERVICEBUS_QUEUENAME="orders" keda-sample-dotnet-worker-servicebus-queue
+❯ docker run --detach --env KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING="<connection-string>" keda-sample-dotnet-worker-servicebus-queue
 c6775c9383e56fc16da37b62ebbff0dc44d4019a53d282a1ef260a6d71022a32
 ```
 

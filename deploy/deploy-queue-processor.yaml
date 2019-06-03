@@ -17,16 +17,11 @@ spec:
       - name: order-processor
         image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue
         env:
-        # Currently having issues via the Secret approach, see https://github.com/kedacore/keda/issues/243
-        #- name: KEDA_SERVICEBUS_CONNECTIONSTRING
-        #  valueFrom:
-        #    secretKeyRef:
-        #     name: order-secrets
-        #     key: SERVICEBUS_CONNECTIONSTRING
-        - name: KEDA_SERVICEBUS_CONNECTIONSTRING
-          value: "Endpoint=sb://keda-sandbox.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qMCFMXbJeXzjWl5mniXtpXZo0Py6AdpF2L4m8+haapw="
-        - name: KEDA_SERVICEBUS_QUEUENAME
-          value: orders
+        - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+             name: order-secrets
+             key: SERVICEBUS_QUEUE_CONNECTIONSTRING
 ---
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
@@ -44,14 +39,5 @@ spec:
   - type: azure-servicebus
     metadata:
       queueName: orders
-      connection: KEDA_SERVICEBUS_CONNECTIONSTRING
+      connection: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
       queueLength: '5'
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: order-secrets
-  labels:
-    app: order-processor
-data:
-  SERVICEBUS_CONNECTIONSTRING: RW5kcG9pbnQ9c2I6Ly9rZWRhLXNhbmRib3guc2VydmljZWJ1cy53aW5kb3dzLm5ldC87U2hhcmVkQWNjZXNzS2V5TmFtZT1Sb290TWFuYWdlU2hhcmVkQWNjZXNzS2V5O1NoYXJlZEFjY2Vzc0tleT1xTUNGTVhiSmVYempXbDVtbmlYdHBYWm8wUHk2QWRwRjJMNG04K2hhYXB3PQo=
