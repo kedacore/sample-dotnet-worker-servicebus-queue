@@ -5,6 +5,35 @@ The message processor will receive a single message at a time (per instance), an
 
 _The sample can also be ran locally on Docker without KEDA, read our [documentation here](./src/)._
 
+## A closer look at our KEDA Scaling
+This is defined via the `ScaledObject` which is deployed along with our application.
+```yaml
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-processor-scaler
+  labels:
+    app: order-processor
+    deploymentName: order-processor
+spec:
+  scaleTargetRef:
+    deploymentName: order-processor
+  # minReplicaCount: 0 Change to define how many minimum replicas you want
+  maxReplicaCount: 10
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      queueName: orders
+      connection: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+      queueLength: '5'
+```
+
+It defines the type of scale trigger we'd like to use, in our case `azure-servicebus`, and the scaling criteria. For our scenario we'd like to scale out if there are 5 or more messages in the `orders` queue with a maximum of 10 concurrent replicas which is defined via `maxReplicaCount`.
+
+KEDA will use the `KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING` environment variable on our `order-processor` Kubernetes Deployment to connect to Azure Service Bus. This allows us to avoid duplication of configuration.
+
+_Note - If we were to use a sidecar, we would need to define `containerName` which contains this environment variable._
+
 ## Pre-requisites
 
 - Azure CLI
@@ -154,8 +183,6 @@ order-processor-65d5dd564-q7tkt   1/1       Running   0          39s
 order-processor-65d5dd564-t2g6x   1/1       Running   0          24s
 order-processor-65d5dd564-v79x6   1/1       Running   0          39s
 ```
-
-This is because we've configured `maxReplicaCount` to 10 as an upper limit.
 
 You can look at the logs for a given processor as following:
 
