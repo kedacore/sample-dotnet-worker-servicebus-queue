@@ -9,21 +9,18 @@ This contains the sources of the sample:
 Build Docker container for order processor
 
 ```shell
-⚡ tkerkhove@tomkerkhove C:\keda-sample-dotnet-worker-servicebus-queue
-❯ docker build .\src --tag keda-sample-dotnet-worker-servicebus-queue --file .\src\Keda.Samples.Dotnet.OrderProcessor\Dockerfile --no-cache
+❯ docker build . --tag keda-sample-dotnet-worker-servicebus-queue --file .\Keda.Samples.Dotnet.OrderProcessor\Dockerfile --no-cache
 ```
 
 Run order processor locally
 ```shell
-⚡ tkerkhove@tomkerkhove C:\keda-sample-dotnet-worker-servicebus-queue
 ❯ docker run --detach --env KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING="<connection-string>" keda-sample-dotnet-worker-servicebus-queue
 c6775c9383e56fc16da37b62ebbff0dc44d4019a53d282a1ef260a6d71022a32
 ```
 
 Let's use the test orders via our `OrderGenerator` tool:
 ```shell
-⚡ tkerkhove@tomkerkhove C:\keda-sample-dotnet-worker-servicebus-queue
-❯ dotnet run --project .\src\Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj
+❯ dotnet run --project .\Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj
 Let's queue some orders, how many do you want?
 2
 Queuing order 719a7b19-f1f7-4f46-a543-8da9bfaf843d - A Hat for Reilly Davis
@@ -33,7 +30,6 @@ That's it, see you later!
 
 Logs indicate orders are being processed
 ```shell
-⚡ tkerkhove@tomkerkhove C:\keda-sample-dotnet-worker-servicebus-queue
 ❯ docker logs c6775c9383e56fc16da37b62ebbff0dc44d4019a53d282a1ef260a6d71022a32
 info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
       Starting message pump at: 05/31/2019 09:03:21 +00:00
