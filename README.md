@@ -6,7 +6,9 @@ The message processor will receive a single message at a time (per instance), an
 _The sample can also be ran locally on Docker without KEDA, read our [documentation here](./src/)._
 
 ## A closer look at our KEDA Scaling
+
 This is defined via the `ScaledObject` which is deployed along with our application.
+
 ```yaml
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
@@ -42,9 +44,11 @@ _Note - If we were to use a sidecar, we would need to define `containerName` whi
 - Kubernetes cluster with [KEDA installed](https://github.com/kedacore/keda#setup)
 
 ## Setup
+
 This setup will go through creating an Azure Service Bus queue  and deploying this consumer with the `ScaledObject` to scale via KEDA.  If you already have an Azure Service Bus namespace you can use your existing queues.
 
 ### Creating a new Azure Service Bus namespace & queue
+
 We will start by creating a new Azure Service Bus namespace:
 
 ```cli
@@ -89,21 +93,21 @@ Create a base64 representation of the connection string and update our Kubernete
 We will start by creating a new Kubernetes namespace to run out order processor in:
 
 ```cli
-kubectl create namespace keda-dotnet-sample
+❯ kubectl create namespace keda-dotnet-sample
 namespace "keda-dotnet-sample" created
 ```
 
 Before we can connect to our queue, we need to create a secret which contains the Service Bus connection string to the queue.
 
 ```cli
-kubectl apply -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
 secret "order-secrets" created
 ```
 
 Once created, you should be able to retrieve the secret:
 
 ```cli
-kubectl get secrets --namespace keda-dotnet-sample
+❯ kubectl get secrets --namespace keda-dotnet-sample
 
 NAME                  TYPE                                  DATA      AGE
 order-secrets         Opaque                                1         24s
@@ -112,7 +116,7 @@ order-secrets         Opaque                                1         24s
 We are ready to go! Now easily install the order processor along with its `ScaledObject`:
 
 ```cli
-kubectl apply -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
 deployment.apps "order-processor" created
 scaledobject.keda.k8s.io "order-processor-scaler" created
 ```
@@ -136,8 +140,8 @@ The following job will to the "orders" queue on which the order processor is lis
 First you should clone the project:
 
 ```cli
-git clone https://github.com/tomkerkhove/sample-dotnet-worker-servicebus-queue
-cd sample-dotnet-worker-servicebus-queue
+❯ git clone https://github.com/tomkerkhove/sample-dotnet-worker-servicebus-queue
+❯ cd sample-dotnet-worker-servicebus-queue
 ```
 
 Configure the connection string in the tool via your favorite text editor, in this case via Visual Studio Code:
@@ -221,21 +225,21 @@ info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
 ### Delete the application
 
 ```cli
-kubectl delete -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
-kubectl delete -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
-kubectl delete namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
+❯ kubectl delete namespace keda-dotnet-sample
 ```
 
 ### Delete the Azure Service Bus namespace
 
 ```cli
-az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
+❯ az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
 ```
 
 ### Uninstall KEDA
 
 ```cli
-helm delete --purge keda
-kubectl delete customresourcedefinition  scaledobjects.keda.k8s.io
-kubectl delete namespace keda
+❯ helm delete --purge keda
+❯ kubectl delete customresourcedefinition  scaledobjects.keda.k8s.io
+❯ kubectl delete namespace keda
 ```
