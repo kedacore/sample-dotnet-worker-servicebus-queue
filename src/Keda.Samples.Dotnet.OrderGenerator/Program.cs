@@ -10,9 +10,8 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string ConnectionString = "Endpoint=sb://keda-sandbox.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qMCFMXbJeXzjWl5mniXtpXZo0Py6AdpF2L4m8+haapw=";
-        private const string QueueName = "orders";
-
+        private const string ConnectionString = "<queue-connection-string>";
+        
         static async Task Main(string[] args)
         {
             Console.WriteLine("Let's queue some orders, how many do you want?");
@@ -24,7 +23,9 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 
         private static async Task QueueOrders(int requestedAmount)
         {
-            var queueClient = new QueueClient(ConnectionString, QueueName);
+            var serviceBusConnectionStringBuilder = new ServiceBusConnectionStringBuilder(ConnectionString);
+
+            var queueClient = new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath, ReceiveMode.PeekLock);
 
             for (int currentOrderAmount = 0; currentOrderAmount < requestedAmount; currentOrderAmount++)
             {
