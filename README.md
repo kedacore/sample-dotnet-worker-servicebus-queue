@@ -90,7 +90,7 @@ Create a base64 representation of the connection string and update our Kubernete
 
 ### Installing our order processor
 
-We will start by creating a new Kubernetes namespace to run out order processor in:
+We will start by creating a new Kubernetes namespace to run our order processor in:
 
 ```cli
 ❯ kubectl create namespace keda-dotnet-sample
@@ -135,7 +135,7 @@ In that case, let's give generate some!
 
 ## Publishing messages to the queue
 
-The following job will to the "orders" queue on which the order processor is listening to. As the queue builds up, KEDA will help the horizontal pod autoscaler add more and more pods until the queue is drained. The order generator will allow you to specify how many messages you want to queue.
+The following job will send messages to the "orders" queue on which the order processor is listening to. As the queue builds up, KEDA will help the horizontal pod autoscaler add more and more pods until the queue is drained. The order generator will allow you to specify how many messages you want to queue.
 
 First you should clone the project:
 
