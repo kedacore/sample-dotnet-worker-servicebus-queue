@@ -30,23 +30,23 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
             var queueClient = new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath, ReceiveMode.PeekLock);
 
-            Logger.LogInformation("Starting message pump at: {Time}", DateTimeOffset.UtcNow);
+            Logger.LogInformation("Starting message pump");
             queueClient.RegisterMessageHandler(HandleMessage, HandleReceivedException);
-            Logger.LogInformation("Message pump started at: {Time}", DateTimeOffset.UtcNow);
+            Logger.LogInformation("Message pump started");
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
 
-            Logger.LogInformation("Closing message pump at: {Time}", DateTimeOffset.UtcNow);
+            Logger.LogInformation("Closing message pump");
             await queueClient.CloseAsync();
             Logger.LogInformation("Message pump closed : {Time}", DateTimeOffset.UtcNow);
         }
 
         private Task HandleReceivedException(ExceptionReceivedEventArgs exceptionEvent)
         {
-            Logger.LogError(exceptionEvent.Exception, "Unable to process message at: {Time}", DateTimeOffset.UtcNow);
+            Logger.LogError(exceptionEvent.Exception, "Unable to process message");
             return Task.CompletedTask;
         }
 
@@ -67,7 +67,7 @@ namespace Keda.Samples.Dotnet.OrderProcessor
                 Logger.LogError("Unable to deserialize to message contract {ContractName} for message {MessageBody}", typeof(TMessage), rawMessageBody);
             }
 
-            Logger.LogInformation("Message {MessageId} processed at: {Time}", message.MessageId, DateTimeOffset.UtcNow);
+            Logger.LogInformation("Message {MessageId} processed", message.MessageId);
         }
     }
 }
