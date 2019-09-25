@@ -40,7 +40,7 @@ _Note - If we were to use a sidecar, we would need to define `containerName` whi
 
 - Azure CLI
 - Azure Subscription
-- .NET Core 3.0 Preview 5
+- .NET Core 3.0
 - Kubernetes cluster with [KEDA installed](https://github.com/kedacore/keda#setup)
 
 ## Setup
