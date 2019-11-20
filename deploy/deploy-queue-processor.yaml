@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: order-processor
+  namespace: keda-demo
   labels:
     app: order-processor
 spec:
@@ -20,13 +21,14 @@ spec:
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
-             name: order-secrets
+             name: secrets-order-consumer
              key: SERVICEBUS_QUEUE_CONNECTIONSTRING
 ---
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
 metadata:
   name: order-processor-scaler
+  namespace: keda-demo
   labels:
     app: order-processor
     deploymentName: order-processor
@@ -39,5 +41,6 @@ spec:
   - type: azure-servicebus
     metadata:
       queueName: orders
-      connection: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
       queueLength: '5'
+    authenticationRef:
+      name: trigger-auth-service-bus-orders
