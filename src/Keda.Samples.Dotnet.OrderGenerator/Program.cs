@@ -10,8 +10,8 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string ConnectionString = "<queue-connection-string>";
-        
+        private const string ConnectionString = "Endpoint=sb://kedasb.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=rBYw57bJjPT4BqffX9IlBNE78BF3UEz54M2cWDlN720=;EntityPath=orders";
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("Let's queue some orders, how many do you want?");
@@ -47,7 +47,7 @@ namespace Keda.Samples.Dotnet.OrderGenerator
             var orderGenerator = new Faker<Order>()
                 .RuleFor(u => u.Customer, () => customerGenerator)
                 .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
-                .RuleFor(u => u.Amount, f => f.Random.Int())
+                .RuleFor(u => u.Amount, f => f.Random.Int(min:10, max:5000))
                 .RuleFor(u => u.ArticleNumber, f => f.Commerce.Product());
 
             return orderGenerator.Generate();
