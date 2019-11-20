@@ -26,15 +26,30 @@ spec:
   - type: azure-servicebus
     metadata:
       queueName: orders
-      connection: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
       queueLength: '5'
+    authenticationRef:
+      name: trigger-auth-service-bus-orders
 ```
 
 It defines the type of scale trigger we'd like to use, in our case `azure-servicebus`, and the scaling criteria. For our scenario we'd like to scale out if there are 5 or more messages in the `orders` queue with a maximum of 10 concurrent replicas which is defined via `maxReplicaCount`.
 
-KEDA will use the `KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING` environment variable on our `order-processor` Kubernetes Deployment to connect to Azure Service Bus. This allows us to avoid duplication of configuration.
+Next to that, it is referring to `trigger-auth-service-bus-orders` which is a `TriggerAuthentication` resource that defines how KEDA should authenticate to get the metrics:
 
-_Note - If we were to use a sidecar, we would need to define `containerName` which contains this environment variable._
+```yaml
+apiVersion: keda.k8s.io/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: trigger-auth-service-bus-orders
+spec:
+  secretTargetRef:
+  - parameter: connection
+    name: secrets-order-management
+    key: servicebus-order-management-connectionstring
+```
+
+In this case, we are telling KEDA to read the `connection` parameter from a Kubernetes secret with the name `secrets-order-management` and pass the value of the entry with key `servicebus-order-management-connectionstring`.
+
+This allows us to not only re-use this authentication resource but also assign different permissions to KEDA than our app itself.
 
 ## Pre-requisites
 
@@ -61,16 +76,16 @@ After that, we create an `orders` queue in our namespace:
 ❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
-We need to be able to connect to our queue, so we create a new authorization rule with `Management` permissions which KEDA requires.
+We need to be able to connect to our queue, so we create a new authorization rule with `Listen` permissions which our app will use to process messages.
 
 ```cli
-❯ az servicebus queue authorization-rule create --resource-group keda-sandbox --namespace-name keda-sandbox --queue-name orders --name order-consumer --rights Manage Send Listen
+❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer --rights Listen
 ```
 
 Once the authorization rule is created, we can list the connection string as following:
 
 ```cli
-❯ az servicebus queue authorization-rule keys list --resource-group keda-sandbox --namespace-name keda-sandbox --queue-name orders --name order-consumer
+❯ az servicebus queue authorization-rule keys list --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer
 {
   "aliasPrimaryConnectionString": null,
   "aliasSecondaryConnectionString": null,
@@ -82,13 +97,13 @@ Once the authorization rule is created, we can list the connection string as fol
 }
 ```
 
-Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/deploy-secret.yaml`:
+Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/deploy-app.yaml`:
 
 ```cli
 ❯ echo "<connection string>" | base64
 ```
 
-### Installing our order processor
+### Deploying our order processor
 
 We will start by creating a new Kubernetes namespace to run our order processor in:
 
@@ -100,8 +115,9 @@ namespace "keda-dotnet-sample" created
 Before we can connect to our queue, we need to create a secret which contains the Service Bus connection string to the queue.
 
 ```cli
-❯ kubectl apply -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
-secret "order-secrets" created
+❯ kubectl apply -f deploy/deploy-app.yaml --namespace keda-dotnet-sample
+deployment.apps/order-processor created
+secret/secrets-order-consumer created
 ```
 
 Once created, you should be able to retrieve the secret:
@@ -110,15 +126,36 @@ Once created, you should be able to retrieve the secret:
 ❯ kubectl get secrets --namespace keda-dotnet-sample
 
 NAME                  TYPE                                  DATA      AGE
-order-secrets         Opaque                                1         24s
+secrets-order-consumer         Opaque                                1         24s
 ```
 
-We are ready to go! Now easily install the order processor along with its `ScaledObject`:
+Next to that, you will see that our deployment shows up with one pods created:
 
 ```cli
-❯ kubectl apply -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
-deployment.apps "order-processor" created
-scaledobject.keda.k8s.io "order-processor-scaler" created
+❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
+NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
+order-processor   0         0         0            0           49s       order-processor   tomkerkhove/keda-sample-dotnet-worker-servicebus-queue   app=order-processor
+```
+
+### Deploying our autoscaling
+
+First things first, we will create a new authorization rule with `Management` permissions so that KEDA can monitor it.
+
+```cli
+❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name keda-monitor --rights Manage Send Listen
+```
+
+Get and encode the connection string as mentioned above and store it in `servicebus-order-management-connectionstring` for our secret in `deploy-autoscaling.yaml`.
+
+We have our secret configured, defined a `TriggerAuthentication` for KEDA to authenticate with and defined how our app should scale with a `ScaledObject` - We are ready to go!
+
+Now let's create everything:
+
+```cli
+❯ kubectl apply -f .\deploy\deploy-autoscaling.yaml --namespace keda-dotnet-sample
+triggerauthentication.keda.k8s.io/trigger-auth-service-bus-orders created
+secret/secrets-order-consumer configured
+scaledobject.keda.k8s.io/order-processor-scaler created
 ```
 
 Once created, you will see that our deployment shows up with no pods created:
@@ -144,7 +181,7 @@ First you should clone the project:
 ❯ cd sample-dotnet-worker-servicebus-queue
 ```
 
-Configure the connection string in the tool via your favorite text editor, in this case via Visual Studio Code:
+Configure a connection string with `Send` permissions in the tool via your favorite text editor, in this case via Visual Studio Code:
 
 ```cli
 ❯ code .\src\Keda.Samples.Dotnet.OrderGenerator\Program.cs
@@ -225,8 +262,8 @@ info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/deploy-queue-processor.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/deploy-secret.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-app.yaml --namespace keda-dotnet-sample
 ❯ kubectl delete namespace keda-dotnet-sample
 ```
 
@@ -241,5 +278,6 @@ info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
 ```cli
 ❯ helm delete --purge keda
 ❯ kubectl delete customresourcedefinition  scaledobjects.keda.k8s.io
+❯ kubectl delete customresourcedefinition  triggerauthentications.keda.k8s.io
 ❯ kubectl delete namespace keda
 ```
