@@ -20,24 +20,14 @@ spec:
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
-             name: order-secrets
-             key: SERVICEBUS_QUEUE_CONNECTIONSTRING
+             name: secrets-order-consumer
+             key: servicebus-connectionstring
 ---
-apiVersion: keda.k8s.io/v1alpha1
-kind: ScaledObject
+apiVersion: v1
+kind: Secret
 metadata:
-  name: order-processor-scaler
+  name: secrets-order-consumer
   labels:
     app: order-processor
-    deploymentName: order-processor
-spec:
-  scaleTargetRef:
-    deploymentName: order-processor
-  # minReplicaCount: 0 Change to define how many minimum replicas you want
-  maxReplicaCount: 10
-  triggers:
-  - type: azure-servicebus
-    metadata:
-      queueName: orders
-      connection: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
-      queueLength: '5'
+data:
+  servicebus-connectionstring: <base64-encoded-connection-string>
