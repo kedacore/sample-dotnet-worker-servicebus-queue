@@ -11,7 +11,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: secrets-order-consumer
+  name: secrets-order-management
   labels:
     app: order-processor
 data:
