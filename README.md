@@ -56,7 +56,7 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster with [KEDA installed](https://github.com/kedacore/keda#setup)
+- Kubernetes cluster with [KEDA v1.0+ installed](https://github.com/kedacore/keda#setup)
 
 ## Setup
 
