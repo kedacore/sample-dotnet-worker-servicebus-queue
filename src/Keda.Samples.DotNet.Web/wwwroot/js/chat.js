@@ -3,22 +3,22 @@
 var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 
 connection.on("ReceiveMessage", function (orderAmount) {
-    var li = document.getElementById("order-amount");
+    var orderAmountElement = document.getElementById("order-amount");
 
     var totalAmount = 0;
-    if (!!li.innerText) {
-        totalAmount = parseInt(li.innerText, 10);
+    if (orderAmountElement.innerText) {
+        totalAmount = parseInt(orderAmountElement.innerText, 10);
     }
-    totalAmount = totalAmount + parseInt(orderAmount,10);
-    li.innerText = totalAmount;
+    totalAmount += parseInt(orderAmount,10);
+    orderAmountElement.innerText = totalAmount;
 
-    var li2 = document.getElementById("orders-consumed");
+    var ordersConsumedElement = document.getElementById("orders-consumed");
     var ordersConsumed = 0;
-    if (!!li2.innerText) {
-        ordersConsumed = parseInt(li2.innerText, 10);
+    if (ordersConsumedElement.innerText) {
+        ordersConsumed = parseInt(ordersConsumedElement.innerText, 10);
     }
-    ordersConsumed = ordersConsumed + 1;
-    li2.innerText = ordersConsumed;
+    ordersConsumed += 1;
+    ordersConsumedElement.innerText = ordersConsumed;
 
 });
 
