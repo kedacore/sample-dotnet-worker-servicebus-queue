@@ -1,24 +1,16 @@
 ﻿@page
-    <div class="container">
-        <div class="row">&nbsp;</div>
-        <div class="row">
-            <div class="col-2">Orders consumed:</div>
-            <div id="orders-consumed" class="col-4"></div>
-        </div>
-        <div class="row">
-            <div class="col-2">Total order amount:</div>
-            <div id="order-amount" class="col-4"></div>
-        </div>
-    </div>
 <div class="row">
     <div class="col-12">
         <hr />
     </div>
 </div>
 <div class="row">
-    <div class="col-6">
-        <ul id="messagesList"></ul>
+    <div id='container' class="col-12">
+        <svg />
     </div>
+
 </div>
+
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="~/js/chat.js"></script>

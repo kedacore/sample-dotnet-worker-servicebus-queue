@@ -29,9 +29,7 @@ namespace Keda.Samples.DotNet.Web.Controllers
         [HttpPost]
         public async Task Post([FromBody] Order order)
         {
-            
-
-
+           
             //Check current queue length
             var client = new ManagementClient(new ServiceBusConnectionStringBuilder(ConnectionString));
             var queueInfo = await client.GetQueueRuntimeInfoAsync("orders");
