@@ -3,31 +3,19 @@
 var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 
 connection.on("ReceiveMessage", function (orderAmount) {
-    //var orderAmountElement = document.getElementById("order-amount");
-
-    //var totalAmount = 0;
-    //if (orderAmountElement.innerText) {
-    //    totalAmount = parseInt(orderAmountElement.innerText, 10);
-    //}
-
     showOrderQueue(orderAmount);
-    //totalAmount = parseInt(orderAmount,10);
-    //orderAmountElement.innerText = totalAmount;
-
-    //var ordersConsumedElement = document.getElementById("orders-consumed");
-    //var ordersConsumed = 0;
-    //if (ordersConsumedElement.innerText) {
-    //    ordersConsumed = parseInt(ordersConsumedElement.innerText, 10);
-    //}
-    //ordersConsumed += 1;
-    //ordersConsumedElement.innerText = ordersConsumed;
-
 });
 
-function showOrderQueue(nrMessages) {
-    console.log(nrMessages);
+connection.start().then(function() {
 
-    var sample = [
+}).catch(function(err) {
+    return console.error(err.toString());
+});
+
+
+function showOrderQueue(nrMessages) {
+
+    var measure = [
         {
             language: '',
             value: nrMessages,
@@ -46,7 +34,7 @@ function showOrderQueue(nrMessages) {
 
     const xScale = d3.scaleBand()
         .range([0, width])
-        .domain(sample.map((s) => s.language))
+        .domain(measure.map((s) => s.language))
         .padding(0.4)
 
     const yScale = d3.scaleLinear()
@@ -75,7 +63,7 @@ function showOrderQueue(nrMessages) {
         );
 
     const barGroups = chart.selectAll()
-        .data(sample)
+        .data(measure)
         .enter()
         .append('g');
 
@@ -120,10 +108,3 @@ function showOrderQueue(nrMessages) {
 
 }
 
-
-connection.start().then(function() {
-    showOrderQueue(50);
-
-}).catch(function (err) {
-    return console.error(err.toString());
-});
