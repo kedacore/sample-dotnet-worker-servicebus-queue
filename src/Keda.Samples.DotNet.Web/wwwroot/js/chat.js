@@ -7,7 +7,7 @@ connection.on("ReceiveMessage", function (orderAmount) {
 });
 
 connection.start().then(function() {
-
+    showOrderQueue(0);
 }).catch(function(err) {
     return console.error(err.toString());
 });
