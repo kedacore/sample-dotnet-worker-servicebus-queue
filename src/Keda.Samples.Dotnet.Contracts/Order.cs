@@ -5,15 +5,15 @@ namespace Keda.Samples.Dotnet.Contracts
     public class Order
     {
         [JsonProperty]
-        public string Id { get; private set; }
+        public string Id { get; set; }
 
         [JsonProperty]
-        public int Amount { get; private set; }
+        public int Amount { get; set; }
 
         [JsonProperty]
-        public string ArticleNumber { get; private set; }
+        public string ArticleNumber { get; set; }
 
         [JsonProperty]
-        public Customer Customer { get; private set; }
+        public Customer Customer { get; set; }
     }
 }

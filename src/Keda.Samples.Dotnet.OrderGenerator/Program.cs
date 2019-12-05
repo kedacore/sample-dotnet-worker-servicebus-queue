@@ -47,7 +47,7 @@ namespace Keda.Samples.Dotnet.OrderGenerator
             var orderGenerator = new Faker<Order>()
                 .RuleFor(u => u.Customer, () => customerGenerator)
                 .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
-                .RuleFor(u => u.Amount, f => f.Random.Int())
+                .RuleFor(u => u.Amount, f => f.Random.Int(min:10, max:5000))
                 .RuleFor(u => u.ArticleNumber, f => f.Commerce.Product());
 
             return orderGenerator.Generate();
