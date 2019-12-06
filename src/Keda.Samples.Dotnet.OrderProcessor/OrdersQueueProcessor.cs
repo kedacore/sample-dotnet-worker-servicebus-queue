@@ -13,12 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Keda.Samples.Dotnet.OrderProcessor
 {
-    public interface IOrdersQueueProcessor
-    {
-
-    }
-
-    public class OrdersQueueProcessor : QueueWorker<Order>, IOrdersQueueProcessor
+    public class OrdersQueueProcessor : QueueWorker<Order>
     {
         private readonly HttpClient _client;
 
@@ -35,7 +30,8 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             var serializedOrder = new StringContent(JsonSerializer.Serialize(order), Encoding.UTF8, "application/json");
-            var result = await _client.PostAsync("https://localhost:44348/api/order/", serializedOrder);
+            var webBaseUrl = Configuration.GetValue<string>("KEDA_SAMPLEWEB_URL");
+            var result = await _client.PostAsync($"{webBaseUrl}/api/order/", serializedOrder);
 
             if( result.IsSuccessStatusCode)
             { 

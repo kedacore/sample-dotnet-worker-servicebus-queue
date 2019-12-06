@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-buster-slim AS base
 WORKDIR /app
 EXPOSE 80
-EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-buster AS build
 WORKDIR /src
 COPY ["Keda.Samples.DotNet.Web/Keda.Samples.DotNet.Web.csproj", "Keda.Samples.DotNet.Web/"]
+COPY ["Keda.Samples.Dotnet.Contracts/Keda.Samples.Dotnet.Contracts.csproj", "Keda.Samples.Dotnet.Contracts/"]
 RUN dotnet restore "Keda.Samples.DotNet.Web/Keda.Samples.DotNet.Web.csproj"
 COPY . .
 WORKDIR "/src/Keda.Samples.DotNet.Web"

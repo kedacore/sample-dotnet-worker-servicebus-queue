@@ -10,7 +10,7 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string ConnectionString = "Endpoint=sb://kedasb.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=rBYw57bJjPT4BqffX9IlBNE78BF3UEz54M2cWDlN720=;EntityPath=orders";
+        private const string ConnectionString = "CHANGETHIS";
 
         static async Task Main(string[] args)
         {
