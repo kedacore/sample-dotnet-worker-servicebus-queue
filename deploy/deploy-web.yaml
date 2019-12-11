@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-web
+  labels:
+    app: order-web
+spec:
+  selector:
+    matchLabels:
+      app: order-web
+  template:
+    metadata:
+      labels:
+        app: order-web
+    spec:
+      containers:
+      - name: order-web
+        image: jakobehn/keda-sample-dotnet-web:1.0
+        env:
+        - name: OrderQueue__ConnectionString
+          valueFrom:
+            secretKeyRef:
+             name: order-secrets
+             key: SERVICEBUS_QUEUE_CONNECTIONSTRING
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kedasampleweb
+  labels:
+    app: order-web
+spec:
+  selector:
+    app: order-web
+  ports:
+    - protocol: TCP
+      port: 80
+  type: LoadBalancer

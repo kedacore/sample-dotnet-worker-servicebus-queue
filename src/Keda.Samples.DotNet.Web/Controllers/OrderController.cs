@@ -21,12 +21,18 @@ namespace Keda.Samples.DotNet.Web.Controllers
             _hubContext = hubContext;
 
             ConnectionString = queueSettings.Value.ConnectionString;
+
+            //Check current queue length
+            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(ConnectionString));
+            var queueInfo = client.GetQueueRuntimeInfoAsync("orders").Result;
+            var messageCount = queueInfo.MessageCount;
+
+            _hubContext.Clients.All.SendAsync("ReceiveMessage", messageCount);
         }
 
         [HttpPost]
         public async Task Post([FromBody] Order order)
-        {
-           
+        {         
             //Check current queue length
             var client = new ManagementClient(new ServiceBusConnectionStringBuilder(ConnectionString));
             var queueInfo = await client.GetQueueRuntimeInfoAsync("orders");

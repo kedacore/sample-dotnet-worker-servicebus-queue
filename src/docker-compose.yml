@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   kedasampleweb:
-    image: jakobehn/kedasamplesdotnetweb
+    image: jakobehn/keda-sample-dotnet-web
     build:
       context: .
       dockerfile: Keda.Samples.DotNet.Web/Dockerfile
@@ -10,7 +10,7 @@ services:
       - OrderQueue__ConnectionString=<CHANGETHIS>
 
   kedasampleorderprocessor:
-    image: jakobehn/kedasamplesdotnetorderprocessor
+    image: jakobehn/keda-sample-dotnet-worker-servicebus-queue
     build:
       context: .
       dockerfile: Keda.Samples.Dotnet.OrderProcessor/Dockerfile
