@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Keda.Samples.Dotnet.Contracts;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -10,11 +11,36 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string ConnectionString = "CHANGETHIS";
+        private const string ConnectionString = "Endpoint=sb://kedasb.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=4IfcwDBrDCf1TUINaQDPIJBvzJyct31XbDzRICYnSaE=;EntityPath=orders";
 
         static async Task Main(string[] args)
         {
+            var deadletterReceiver = new MessageReceiver("Endpoint=sb://kedasb.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=4IfcwDBrDCf1TUINaQDPIJBvzJyct31XbDzRICYnSaE=", EntityNameHelper.FormatDeadLetterPath("orders"), ReceiveMode.PeekLock);
+            while (true)
+            {
+                // receive a message
+                var msg = await deadletterReceiver.ReceiveAsync(TimeSpan.FromSeconds(10));
+                if (msg != null)
+                {
+                    // write out the message and its user properties
+                    Console.WriteLine("Deadletter message:");
+                    foreach (var prop in msg.UserProperties)
+                    {
+                        Console.WriteLine("{0}={1}", prop.Key, prop.Value);
+                    }
+                    // complete and therefore remove the message from the DLQ
+                    await deadletterReceiver.CompleteAsync(msg.SystemProperties.LockToken);
+                }
+                else
+                {
+                    // DLQ was empty on last receive attempt
+                    break;
+                }
+            }
+            
+
             Console.WriteLine("Let's queue some orders, how many do you want?");
+
             var requestedAmount = DetermineOrderAmount();
             await QueueOrders(requestedAmount);
 

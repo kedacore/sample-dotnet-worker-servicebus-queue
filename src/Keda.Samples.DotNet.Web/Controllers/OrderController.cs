@@ -13,28 +13,27 @@ namespace Keda.Samples.DotNet.Web.Controllers
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly string ConnectionString;
+        private readonly string _connectionString;
         private readonly IHubContext<ChatHub> _hubContext;
 
         public OrderController(IHubContext<ChatHub> hubContext, IOptions<OrderQueueSettings> queueSettings)
         {
             _hubContext = hubContext;
+            _connectionString = queueSettings.Value.ConnectionString;
 
-            ConnectionString = queueSettings.Value.ConnectionString;
-
-            //Check current queue length
-            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(ConnectionString));
-            var queueInfo = client.GetQueueRuntimeInfoAsync("orders").Result;
-            var messageCount = queueInfo.MessageCount;
-
-            _hubContext.Clients.All.SendAsync("ReceiveMessage", messageCount);
+            Task.Run(() => this.UpdateQueueStatus()).Wait();
         }
 
         [HttpPost]
         public async Task Post([FromBody] Order order)
         {         
+            await UpdateQueueStatus();
+        }
+
+        private async Task UpdateQueueStatus()
+        {
             //Check current queue length
-            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(ConnectionString));
+            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(_connectionString));
             var queueInfo = await client.GetQueueRuntimeInfoAsync("orders");
             var messageCount = queueInfo.MessageCount;
 

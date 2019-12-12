@@ -39,7 +39,7 @@ function showOrderQueue(nrMessages) {
 
     const yScale = d3.scaleLinear()
         .range([height, 0])
-        .domain([0, 100]);
+        .domain([0, 500]);
 
     // vertical grid lines
     // const makeXLines = () => d3.axisBottom()

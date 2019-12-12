@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: order-web
-        image: jakobehn/keda-sample-dotnet-web:1.0
+        image: jakobehn/keda-sample-dotnet-web:1.1
         env:
         - name: OrderQueue__ConnectionString
           valueFrom:
