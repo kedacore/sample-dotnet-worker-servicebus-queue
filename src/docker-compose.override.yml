@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  keda.samples.dotnet.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>
+    ports:
+      - "80"
+  keda.samples.worker.servicebus:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>

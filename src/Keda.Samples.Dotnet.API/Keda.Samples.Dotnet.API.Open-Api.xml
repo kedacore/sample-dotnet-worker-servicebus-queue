@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Keda.Samples.Dotnet.API</name>
+    </assembly>
+    <members>
+        <member name="T:Keda.Samples.Dotnet.API.Controllers.OrdersController">
+            <summary>
+                API endpoint to manage orders
+            </summary>
+        </member>
+        <member name="M:Keda.Samples.Dotnet.API.Controllers.OrdersController.#ctor(Microsoft.Azure.ServiceBus.QueueClient)">
+            <summary>
+                Constructor
+            </summary>
+            <param name="queueClient">Client to send messages to queue with</param>
+        </member>
+        <member name="M:Keda.Samples.Dotnet.API.Controllers.OrdersController.Create(Keda.Samples.Dotnet.Contracts.Order)">
+            <summary>
+                Create Order
+            </summary>
+        </member>
+    </members>
+</doc>
