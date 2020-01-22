@@ -1,10 +1,7 @@
-using Keda.Samples.Dotnet.OrderProcessor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Net.Http.Headers;
 
 namespace Keda.Samples.Dotnet.OrderProcessor
 {
@@ -28,7 +25,6 @@ namespace Keda.Samples.Dotnet.OrderProcessor
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<OrdersQueueProcessor>();
-                    services.AddHttpClient();
                 });
     }
 }

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Keda.Samples.DotNet.Web.Hubs;
 
 namespace Keda.Samples.DotNet.Web
 {
@@ -53,7 +52,6 @@ namespace Keda.Samples.DotNet.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
-                endpoints.MapHub<ChatHub>("/chatHub");
                 endpoints.MapControllers();
             });
         }
