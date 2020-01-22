@@ -15,13 +15,13 @@ spec:
     spec:
       containers:
       - name: order-web
-        image: jakobehn/keda-sample-dotnet-web:1.1
+        image: jakobehn/keda-sample-dotnet-web
         env:
         - name: OrderQueue__ConnectionString
           valueFrom:
             secretKeyRef:
-             name: order-secrets
-             key: SERVICEBUS_QUEUE_CONNECTIONSTRING
+             name: secrets-order-consumer
+             key: servicebus-connectionstring
 ---
 apiVersion: v1
 kind: Service
