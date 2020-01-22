@@ -20,7 +20,7 @@ namespace Keda.Samples.Dotnet.OrderProcessor
         {
             Logger.LogInformation("Processing order {OrderId} for {OrderAmount} units of {OrderArticle} bought by {CustomerFirstName} {CustomerLastName}", order.Id, order.Amount, order.ArticleNumber, order.Customer.FirstName, order.Customer.LastName);
 
-            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
             Logger.LogInformation("Order {OrderId} processed", order.Id);
         }
