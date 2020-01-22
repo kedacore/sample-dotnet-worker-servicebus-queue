@@ -17,7 +17,7 @@ spec:
       - name: order-web
         image: jakobehn/keda-sample-dotnet-web
         env:
-        - name: OrderQueue__ConnectionString
+        - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
              name: secrets-order-consumer
