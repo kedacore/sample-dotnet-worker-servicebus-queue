@@ -3,7 +3,7 @@ using Keda.Samples.Dotnet.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace Keda.Samples.DotNet.Web.Controllers
 {
@@ -11,18 +11,21 @@ namespace Keda.Samples.DotNet.Web.Controllers
     [Route("api/[controller]")]
     public class QueueController : ControllerBase
     {
-        private readonly string _connectionString;
+        protected IConfiguration Configuration { get; }
 
-        public QueueController(IOptions<OrderQueueSettings> queueSettings)
+        public QueueController(IConfiguration configuration)
         {
-            _connectionString = queueSettings.Value.ConnectionString;
+            Configuration = configuration;
+            
         }
 
         [HttpGet]
         public async Task<QueueStatus> Get()
         {
+            var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
+
             //Check current queue length
-            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(_connectionString));
+            var client = new ManagementClient(new ServiceBusConnectionStringBuilder(connectionString));
             var queueInfo = await client.GetQueueRuntimeInfoAsync("orders");
 
             return new QueueStatus()

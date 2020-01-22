@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keda.Samples.Dotnet.Contrac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keda.Samples.DotNet.Web", "Keda.Samples.DotNet.Web\Keda.Samples.DotNet.Web.csproj", "{F6DADE6A-F33F-47B0-9D42-707D49431AC2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keda.Samples.Dotnet.API", "Keda.Samples.Dotnet.API\Keda.Samples.Dotnet.API.csproj", "{AD8EA5AF-B71C-4932-AD81-0121EE69F3DD}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "Keda.Samples.Docker", "Keda.Samples.Docker.dcproj", "{B74F58D6-EB10-4116-8845-7455B83145E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{F6DADE6A-F33F-47B0-9D42-707D49431AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6DADE6A-F33F-47B0-9D42-707D49431AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6DADE6A-F33F-47B0-9D42-707D49431AC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD8EA5AF-B71C-4932-AD81-0121EE69F3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD8EA5AF-B71C-4932-AD81-0121EE69F3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD8EA5AF-B71C-4932-AD81-0121EE69F3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD8EA5AF-B71C-4932-AD81-0121EE69F3DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B74F58D6-EB10-4116-8845-7455B83145E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B74F58D6-EB10-4116-8845-7455B83145E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B74F58D6-EB10-4116-8845-7455B83145E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B74F58D6-EB10-4116-8845-7455B83145E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
