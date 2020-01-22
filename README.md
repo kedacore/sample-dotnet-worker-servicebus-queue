@@ -257,6 +257,20 @@ info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
       Message 9d24f13cd5ec44e884efdc9ed4a8842d processed at: 06/03/2019 12:32:19 +00:00
 ```
 
+## Visualizing the message queue
+
+There is also a web application included in the repository that shows a simple bar chart with the number of messages. The graph refreshes every 2 seconds, giving you a nice visualizing how the queue intially builds up and then, when the autoscaler kicks in, the queue will decrease in length quicker and quicker until reaching zero.
+
+To run the web app, just add the service bus connection string to Program.cs and run the web application.
+
+There is also a docker image available, so you can run it with the following command:
+
+```cli
+docker run -p 8080:80 -d -e OrderQueue__ConnectionString="CONNECTIONSTRING_HERE" jakobehn/keda-sample-dotnet-web 
+```
+
+![Visualize message queue](/images/kedaweb.png)
+
 ## Cleaning up resources
 
 ### Delete the application
