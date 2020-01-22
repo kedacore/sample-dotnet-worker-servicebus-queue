@@ -261,13 +261,34 @@ info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
 
 There is also a web application included in the repository that shows a simple bar chart with the number of messages. The graph refreshes every 2 seconds, giving you a nice visualizing how the queue intially builds up and then, when the autoscaler kicks in, the queue will decrease in length quicker and quicker until reaching zero.
 
-To run the web app, just add the service bus connection string to Program.cs and run the web application.
 
-There is also a docker image available, so you can run it with the following command:
+To build and run the web app locally, add the service bus connection string to appSettings.json and run the web application from Visual Studio.
+
+There is also a docker image available, so you can also run it locally with the following command:
 
 ```cli
 docker run -p 8080:80 -d -e OrderQueue__ConnectionString="CONNECTIONSTRING_HERE" jakobehn/keda-sample-dotnet-web 
 ```
+
+Finally, you can delpoy the web application to Kubernetes by using the supplied yaml file, like so:
+
+```cli
+❯ kubectl apply -f .\deploy\deploy-web.yaml --namespace keda-dotnet-sample
+deployment.apps/order-web created
+service/kedasampleweb created
+```
+
+Get the public IP by running:
+
+```cli
+❯ kubectl get svc kedasampleweb --namespace keda-dotnet-sample
+NAME            TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)        AGE
+kedasampleweb   LoadBalancer   10.0.37.60   52.157.87.179   80:30919/TCP   117s
+```
+
+You'll need to wait a short while until the public IP is created and shown in the output.
+
+
 
 ![Visualize message queue](/images/kedaweb.png)
 
