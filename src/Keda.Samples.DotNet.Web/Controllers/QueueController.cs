@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 namespace Keda.Samples.DotNet.Web.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class QueueController : ControllerBase
     {
         protected IConfiguration Configuration { get; }
