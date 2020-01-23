@@ -267,7 +267,7 @@ To build and run the web app locally, add the service bus connection string to a
 There is also a docker image available, so you can also run it locally with the following command:
 
 ```cli
-docker run -p 8080:80 -d -e OrderQueue__ConnectionString="KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING" jakobehn/keda-sample-dotnet-web 
+docker run -p 8080:80 -d -e OrderQueue__ConnectionString="KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING" jakobehn/keda-samples-dotnet-web 
 ```
 
 To deploy the web application to your Kubernetes cluster:
