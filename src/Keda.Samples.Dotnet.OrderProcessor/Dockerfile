@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1.0-alpine AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0.101-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.101-alpine AS build
 WORKDIR /src
 COPY ["Keda.Samples.Dotnet.OrderProcessor/Keda.Samples.Dotnet.OrderProcessor.csproj", "Keda.Samples.Dotnet.OrderProcessor/"]
 COPY ["Keda.Samples.Dotnet.Contracts/Keda.Samples.Dotnet.Contracts.csproj", "Keda.Samples.Dotnet.Contracts/"]

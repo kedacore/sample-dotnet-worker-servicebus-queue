@@ -12,3 +12,11 @@ services:
     build:
       context: .
       dockerfile: Keda.Samples.Dotnet.OrderProcessor/Dockerfile
+
+  keda.samples.web:
+    image:  jakobehn/keda-sample-dotnet-web
+    ports:
+    - "8000:80"
+    build:
+      context: .
+      dockerfile: Keda.Samples.DotNet.Web/Dockerfile

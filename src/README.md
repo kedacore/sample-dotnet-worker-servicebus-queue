@@ -2,7 +2,8 @@
 This contains the sources of the sample:
 - `Keda.Samples.Dotnet.Contracts` contains the message contracts
 - `Keda.Samples.Dotnet.OrderGenerator` is a utility that queues new orders to an Azure Service Bus Queue
-- `Keda.Samples.Dotnet.OrderProcessor` is a .NET Core 3.0 Preview 5 worker that processes orders from an Azure Service Bus Queue
+- `Keda.Samples.Dotnet.OrderProcessor` is a .NET Core 3.0 worker that processes orders from an Azure Service Bus Queue
+- `Keda.Samples.Dotnet.OrderWeb` is a ASP.NET Core 3.0 web app that visualizes the size of the service bus queue
 
 ## Building & Running the sample locally on Docker
 

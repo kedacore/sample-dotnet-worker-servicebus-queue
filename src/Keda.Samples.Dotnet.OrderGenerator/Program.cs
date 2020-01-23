@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Keda.Samples.Dotnet.Contracts;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -11,10 +12,11 @@ namespace Keda.Samples.Dotnet.OrderGenerator
     class Program
     {
         private const string ConnectionString = "<queue-connection-string>";
-        
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("Let's queue some orders, how many do you want?");
+
             var requestedAmount = DetermineOrderAmount();
             await QueueOrders(requestedAmount);
 

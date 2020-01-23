@@ -12,3 +12,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>
+  keda.samples.web:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>
