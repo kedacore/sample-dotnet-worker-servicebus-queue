@@ -1,8 +1,12 @@
+using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 namespace Keda.Samples.DotNet.Web
 {
@@ -26,6 +30,13 @@ namespace Keda.Samples.DotNet.Web
             var orderQueueSection = Configuration.GetSection("OrderQueue");
             services.Configure<OrderQueueSettings>(orderQueueSection);
 
+            services.AddSwagger();
+            services.AddScoped<QueueClient>(serviceProvider =>
+            {
+                var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
+                var serviceBusConnectionStringBuilder = new ServiceBusConnectionStringBuilder(connectionString);
+                return new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +64,13 @@ namespace Keda.Samples.DotNet.Web
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(swaggerUiOptions =>
+            {
+                swaggerUiOptions.SwaggerEndpoint("v1/swagger.json", "Keda.Samples.Dotnet.API");
+                swaggerUiOptions.DocumentTitle = "KEDA API";
             });
         }
     }

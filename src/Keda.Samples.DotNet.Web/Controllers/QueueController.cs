@@ -16,25 +16,22 @@ namespace Keda.Samples.DotNet.Web.Controllers
         public QueueController(IConfiguration configuration)
         {
             Configuration = configuration;
-            
         }
 
         [HttpGet]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<QueueStatus> Get()
         {
             var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
 
-            //Check current queue length
+            // Check current queue length
             var client = new ManagementClient(new ServiceBusConnectionStringBuilder(connectionString));
             var queueInfo = await client.GetQueueRuntimeInfoAsync("orders");
 
-            return new QueueStatus()
+            return new QueueStatus
             {
                 MessageCount = queueInfo.MessageCount
             };
         }
-
     }
-
-
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Keda.Samples.DotNet.Web
 {
@@ -14,6 +15,10 @@ namespace Keda.Samples.DotNet.Web
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureLogging((hostBuilderContext, loggingBuilder) =>
+                    {
+                        loggingBuilder.AddConsole(consoleLoggerOptions => consoleLoggerOptions.TimestampFormat = "[HH:mm:ss]");
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
