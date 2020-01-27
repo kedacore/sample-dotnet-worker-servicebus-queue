@@ -12,7 +12,7 @@ pr:
     - src/*
     - .azure-devops/ci.yaml
 variables:
-  DotNet.SDK.Version: '3.0.100-preview5-011568'
+  DotNet.SDK.Version: '3.1.101'
   Image.Worker.Name: 'kedasamples/sample-dotnet-worker-servicebus-queue'
   Image.Web.Name: 'kedasamples/sample-dotnet-web'
 stages:
@@ -63,9 +63,9 @@ stages:
          repository: '$(Image.Worker.Name)'
          tags: latest
        condition: ne(variables['Build.Reason'], 'PullRequest')
-- stage: OrderProcessor
+- stage: OrderWeb
   dependsOn: []
-  displayName: Order Processor
+  displayName: Order Web UI
   jobs:
    - job: Docker
      displayName: Docker Image
