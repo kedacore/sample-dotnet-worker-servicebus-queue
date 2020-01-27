@@ -8,7 +8,7 @@ window.setInterval(function () {
 
 function showOrderQueue(nrMessages) {
 
-    fetch("/api/queue/")
+    fetch("/api/v1/queue/")
         .then(function (response) {
 
             if (response.status !== 200) {

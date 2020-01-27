@@ -134,7 +134,7 @@ Next to that, you will see that our deployment shows up with one pods created:
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
-order-processor   0         0         0            0           49s       order-processor   tomkerkhove/keda-sample-dotnet-worker-servicebus-queue   app=order-processor
+order-processor   0         0         0            0           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
 ### Deploying our autoscaling
@@ -163,7 +163,7 @@ Once created, you will see that our deployment shows up with no pods created:
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
-order-processor   0         0         0            0           49s       order-processor   tomkerkhove/keda-sample-dotnet-worker-servicebus-queue   app=order-processor
+order-processor   0         0         0            0           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
 This is because our queue is empty and KEDA scaled it down until there is work to do.
@@ -177,7 +177,7 @@ The following job will send messages to the "orders" queue on which the order pr
 First you should clone the project:
 
 ```cli
-❯ git clone https://github.com/tomkerkhove/sample-dotnet-worker-servicebus-queue
+❯ git clone https://github.com/kedacore/sample-dotnet-worker-servicebus-queue
 ❯ cd sample-dotnet-worker-servicebus-queue
 ```
 
@@ -205,7 +205,7 @@ Now that the messages are generated, you'll see that KEDA starts automatically s
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
-order-processor   8         8         8            4           4m        order-processor   tomkerkhove/keda-sample-dotnet-worker-servicebus-queue   app=order-processor
+order-processor   8         8         8            4           4m        order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
 Eventually we will have 10 pods running processing messages in parallel:
@@ -267,7 +267,7 @@ To build and run the web app locally, add the service bus connection string to a
 There is also a docker image available, so you can also run it locally with the following command:
 
 ```cli
-docker run -p 8080:80 -d -e OrderQueue__ConnectionString="KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING" jakobehn/keda-sample-dotnet-web 
+docker run -p 8080:80 -d -e OrderQueue__ConnectionString="KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING" kedasamples/sample-dotnet-web 
 ```
 
 To deploy the web application to your Kubernetes cluster:

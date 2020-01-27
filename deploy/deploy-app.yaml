@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: order-processor
-        image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue
+        image: kedasamples/sample-dotnet-worker-servicebus-queue
         env:
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:

@@ -12,8 +12,9 @@ pr:
     - src/*
     - .azure-devops/ci.yaml
 variables:
-  DotNet.SDK.Version: '3.0.100-preview5-011568'
-  Image.Name: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+  DotNet.SDK.Version: '3.1.101'
+  Image.Worker.Name: 'kedasamples/sample-dotnet-worker-servicebus-queue'
+  Image.Web.Name: 'kedasamples/sample-dotnet-web'
 stages:
 - stage: OrderGenerator
   dependsOn: []
@@ -49,7 +50,7 @@ stages:
        inputs:
          command: build
          containerRegistry: 'Docker Hub - tomkerkhove'
-         repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+         repository: '$(Image.Worker.Name)'
          Dockerfile: src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile
          buildContext: src/
          tags: latest
@@ -59,6 +60,34 @@ stages:
        inputs:
          command: push
          containerRegistry: 'Docker Hub - tomkerkhove'
-         repository: 'tomkerkhove/keda-sample-dotnet-worker-servicebus-queue'
+         repository: '$(Image.Worker.Name)'
+         tags: latest
+       condition: ne(variables['Build.Reason'], 'PullRequest')
+- stage: OrderWeb
+  dependsOn: []
+  displayName: Order Web UI
+  jobs:
+   - job: Docker
+     displayName: Docker Image
+     condition: succeeded()
+     pool:
+       vmImage: ubuntu-16.04
+     steps:
+     - task: Docker@2
+       displayName: 'Build Docker image'
+       inputs:
+         command: build
+         containerRegistry: 'Docker Hub - tomkerkhove'
+         repository: '$(Image.Web.Name)'
+         Dockerfile: src/Keda.Samples.DotNet.Web/Dockerfile
+         buildContext: src/
+         tags: latest
+         arguments: '--no-cache'
+     - task: Docker@2
+       displayName: 'Push Docker image'
+       inputs:
+         command: push
+         containerRegistry: 'Docker Hub - tomkerkhove'
+         repository: '$(Image.Web.Name)'
          tags: latest
        condition: ne(variables['Build.Reason'], 'PullRequest')

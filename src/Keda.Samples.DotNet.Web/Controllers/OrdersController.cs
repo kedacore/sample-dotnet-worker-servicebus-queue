@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 
-namespace Keda.Samples.Dotnet.API.Controllers
+namespace Keda.Samples.DotNet.Web.Controllers
 {
     /// <summary>
     ///     API endpoint to manage orders
