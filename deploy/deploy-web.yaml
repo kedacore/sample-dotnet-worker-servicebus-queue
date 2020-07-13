@@ -20,8 +20,8 @@ spec:
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
-             name: secrets-order-consumer
-             key: servicebus-connectionstring
+             name: secrets-order-management
+             key: servicebus-order-management-connectionstring
 ---
 apiVersion: v1
 kind: Service
