@@ -3,6 +3,8 @@ A simple Docker container written in .NET that will receive messages from a Serv
 
 The message processor will receive a single message at a time (per instance), and sleep for 2 second to simulate performing work. When adding a massive amount of queue messages, KEDA will drive the container to scale out according to the event source (Service Bus Queue).
 
+> 💡 *If you want to learn how to scale this sample with KEDA 1.0, feel free to read about it [here](https://github.com/kedacore/sample-dotnet-worker-servicebus-queue/tree/keda-v1.0).*
+
 _The sample can also be ran locally on Docker without KEDA, read our [documentation here](./src/)._
 
 ## A closer look at our KEDA Scaling
@@ -10,7 +12,7 @@ _The sample can also be ran locally on Docker without KEDA, read our [documentat
 This is defined via the `ScaledObject` which is deployed along with our application.
 
 ```yaml
-apiVersion: keda.k8s.io/v1alpha1
+apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: order-processor-scaler
@@ -36,7 +38,7 @@ It defines the type of scale trigger we'd like to use, in our case `azure-servic
 Next to that, it is referring to `trigger-auth-service-bus-orders` which is a `TriggerAuthentication` resource that defines how KEDA should authenticate to get the metrics:
 
 ```yaml
-apiVersion: keda.k8s.io/v1alpha1
+apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
   name: trigger-auth-service-bus-orders
@@ -56,7 +58,7 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster with [KEDA v1.0+ installed](https://github.com/kedacore/keda#setup)
+- Kubernetes cluster with [KEDA v2.0+ installed](https://keda.sh/docs/2.0/deploy/)
 
 ## Setup
 
@@ -100,7 +102,7 @@ Once the authorization rule is created, we can list the connection string as fol
 Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/deploy-app.yaml`:
 
 ```cli
-❯ echo "<connection string>" | base64
+❯ echo -n "<connection string>" | base64
 ```
 
 ### Deploying our order processor
@@ -134,7 +136,7 @@ Next to that, you will see that our deployment shows up with one pods created:
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
-order-processor   0         0         0            0           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
+order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
 ### Deploying our autoscaling
@@ -153,9 +155,9 @@ Now let's create everything:
 
 ```cli
 ❯ kubectl apply -f .\deploy\deploy-autoscaling.yaml --namespace keda-dotnet-sample
-triggerauthentication.keda.k8s.io/trigger-auth-service-bus-orders created
+triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 secret/secrets-order-consumer configured
-scaledobject.keda.k8s.io/order-processor-scaler created
+scaledobject.keda.sh/order-processor-scaler created
 ```
 
 Once created, you will see that our deployment shows up with no pods created:
@@ -288,8 +290,6 @@ kedasampleweb   LoadBalancer   10.0.37.60   52.157.87.179   80:30919/TCP   117s
 
 You'll need to wait a short while until the public IP is created and shown in the output. 
 
-
-
 ![Visualize message queue](/images/kedaweb.png)
 
 ## Cleaning up resources
@@ -312,7 +312,7 @@ You'll need to wait a short while until the public IP is created and shown in th
 
 ```cli
 ❯ helm delete --purge keda
-❯ kubectl delete customresourcedefinition  scaledobjects.keda.k8s.io
-❯ kubectl delete customresourcedefinition  triggerauthentications.keda.k8s.io
+❯ kubectl delete customresourcedefinition  scaledobjects.keda.sh
+❯ kubectl delete customresourcedefinition  triggerauthentications.keda.sh
 ❯ kubectl delete namespace keda
 ```
