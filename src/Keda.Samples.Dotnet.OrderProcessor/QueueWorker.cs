@@ -16,7 +16,7 @@ namespace Keda.Samples.Dotnet.OrderProcessor
         protected ILogger<QueueWorker<TMessage>> Logger { get; }
         protected IConfiguration Configuration { get; }
 
-        public QueueWorker(IConfiguration configuration, ILogger<QueueWorker<TMessage>> logger)
+        protected QueueWorker(IConfiguration configuration, ILogger<QueueWorker<TMessage>> logger)
         {
             Configuration = configuration;
             Logger = logger;
@@ -24,11 +24,7 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
-            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_NAME");
-
-            var serviceBusClient = new ServiceBusClient(connectionString);
-            var messageProcessor = serviceBusClient.CreateProcessor(queueName);
+            var messageProcessor = CreateServiceBusProcessor();
             messageProcessor.ProcessMessageAsync += HandleMessageAsync;
             messageProcessor.ProcessErrorAsync += HandleReceivedExceptionAsync;
 
@@ -44,6 +40,38 @@ namespace Keda.Samples.Dotnet.OrderProcessor
             Logger.LogInformation("Closing message pump");
             await messageProcessor.CloseAsync(cancellationToken: stoppingToken);
             Logger.LogInformation("Message pump closed : {Time}", DateTimeOffset.UtcNow);
+        }
+
+        private ServiceBusProcessor CreateServiceBusProcessor()
+        {
+            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_NAME");
+            var serviceBusClient = AuthenticateToAzureServiceBus();
+            var messageProcessor = serviceBusClient.CreateProcessor(queueName);
+            return messageProcessor;
+        }
+
+        private ServiceBusClient AuthenticateToAzureServiceBus()
+        {
+            var authenticationMode = Configuration.GetValue<AuthenticationMode>("KEDA_SERVICEBUS_AUTH_MODE");
+            
+            ServiceBusClient serviceBusClient;
+
+            switch (authenticationMode)
+            {
+                case AuthenticationMode.ConnectionString:
+                    serviceBusClient = ServiceBusClientFactory.CreateWithConnectionStringAuthentication(Configuration);
+                    break;
+                case AuthenticationMode.ServicePrinciple:
+                    serviceBusClient = ServiceBusClientFactory.CreateWithServicePrincipleAuthentication(Configuration);
+                    break;
+                case AuthenticationMode.ManagedIdentity:
+                    serviceBusClient = ServiceBusClientFactory.CreateWithManagedIdentityAuthentication(Configuration);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return serviceBusClient;
         }
 
         private async Task HandleMessageAsync (ProcessMessageEventArgs processMessageEventArgs)
