@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,13 +25,15 @@ namespace Keda.Samples.Dotnet.OrderProcessor
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var connectionString = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
+            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_NAME");
 
-            var serviceBusConnectionStringBuilder = new ServiceBusConnectionStringBuilder(connectionString);
-
-            var queueClient = new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath, ReceiveMode.PeekLock);
+            var serviceBusClient = new ServiceBusClient(connectionString);
+            var messageProcessor = serviceBusClient.CreateProcessor(queueName);
+            messageProcessor.ProcessMessageAsync += HandleMessageAsync;
+            messageProcessor.ProcessErrorAsync += HandleReceivedExceptionAsync;
 
             Logger.LogInformation("Starting message pump");
-            queueClient.RegisterMessageHandler(HandleMessage, HandleReceivedException);
+            await messageProcessor.StartProcessingAsync(stoppingToken);
             Logger.LogInformation("Message pump started");
 
             while (!stoppingToken.IsCancellationRequested)
@@ -40,34 +42,36 @@ namespace Keda.Samples.Dotnet.OrderProcessor
             }
 
             Logger.LogInformation("Closing message pump");
-            await queueClient.CloseAsync();
+            await messageProcessor.CloseAsync(cancellationToken: stoppingToken);
             Logger.LogInformation("Message pump closed : {Time}", DateTimeOffset.UtcNow);
         }
 
-        private Task HandleReceivedException(ExceptionReceivedEventArgs exceptionEvent)
+        private async Task HandleMessageAsync (ProcessMessageEventArgs processMessageEventArgs)
         {
-            Logger.LogError(exceptionEvent.Exception, "Unable to process message");
-            return Task.CompletedTask;
-        }
-
-        protected abstract Task ProcessMessage(TMessage order, string messageId, Message.SystemPropertiesCollection systemProperties, IDictionary<string, object> userProperties, CancellationToken cancellationToken);
-
-        private async Task HandleMessage(Message message, CancellationToken cancellationToken)
-        {
-            var rawMessageBody = Encoding.UTF8.GetString(message.Body);
-            Logger.LogInformation("Received message {MessageId} with body {MessageBody}", message.MessageId, rawMessageBody);
+            var rawMessageBody = Encoding.UTF8.GetString(processMessageEventArgs.Message.Body.ToBytes().ToArray());
+            Logger.LogInformation("Received message {MessageId} with body {MessageBody}", processMessageEventArgs.Message.MessageId, rawMessageBody);
 
             var order = JsonConvert.DeserializeObject<TMessage>(rawMessageBody);
             if (order != null)
             {
-                await ProcessMessage(order, message.MessageId, message.SystemProperties, message.UserProperties, cancellationToken);
+                await ProcessMessage(order, processMessageEventArgs.Message.MessageId, processMessageEventArgs.Message.ApplicationProperties, processMessageEventArgs.CancellationToken);
             }
             else
             {
                 Logger.LogError("Unable to deserialize to message contract {ContractName} for message {MessageBody}", typeof(TMessage), rawMessageBody);
             }
 
-            Logger.LogInformation("Message {MessageId} processed", message.MessageId);
+            Logger.LogInformation("Message {MessageId} processed", processMessageEventArgs.Message.MessageId);
+
+            await processMessageEventArgs.CompleteMessageAsync(processMessageEventArgs.Message);
         }
+
+        private Task HandleReceivedExceptionAsync(ProcessErrorEventArgs exceptionEvent)
+        {
+            Logger.LogError(exceptionEvent.Exception, "Unable to process message");
+            return Task.CompletedTask;
+        }
+
+        protected abstract Task ProcessMessage(TMessage order, string messageId, IReadOnlyDictionary<string, object> userProperties, CancellationToken cancellationToken);
     }
 }

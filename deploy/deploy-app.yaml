@@ -22,6 +22,8 @@ spec:
             secretKeyRef:
              name: secrets-order-consumer
              key: servicebus-connectionstring
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: orders
 ---
 apiVersion: v1
 kind: Secret
