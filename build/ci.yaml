@@ -2,15 +2,15 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 resources:
 - repo: self
 trigger:
-- master
+- main
 pr:
   branches:
     include:
-    - master
+    - main
   paths:
     include:
     - src/*
-    - .azure-devops/ci.yaml
+    - build/ci.yaml
 variables:
   DotNet.SDK.Version: '3.1.101'
   Image.Worker.Name: 'kedasamples/sample-dotnet-worker-servicebus-queue'
