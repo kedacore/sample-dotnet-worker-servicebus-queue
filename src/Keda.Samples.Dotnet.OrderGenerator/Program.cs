@@ -1,7 +1,6 @@
 ﻿using Bogus;
 using Keda.Samples.Dotnet.Contracts;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
 using Newtonsoft.Json;
 using System;
 using System.Text;
