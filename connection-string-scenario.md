@@ -99,7 +99,7 @@ Once the authorization rule is created, we can list the connection string as fol
 }
 ```
 
-Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/deploy-app-withconnection-string.yaml`:
+Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/connection-string/deploy-app.yaml`:
 
 ```cli
 ❯ echo -n "<connection string>" | base64
@@ -117,7 +117,7 @@ namespace "keda-dotnet-sample" created
 Before we can connect to our queue, we need to create a secret which contains the Service Bus connection string to the queue.
 
 ```cli
-❯ kubectl apply -f deploy/deploy-app-withconnection-string.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
 deployment.apps/order-processor created
 secret/secrets-order-consumer created
 ```
@@ -154,7 +154,7 @@ We have our secret configured, defined a `TriggerAuthentication` for KEDA to aut
 Now let's create everything:
 
 ```cli
-❯ kubectl apply -f .\deploy\deploy-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f .\deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 secret/secrets-order-consumer configured
 scaledobject.keda.sh/order-processor-scaler created
@@ -297,8 +297,8 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/deploy-autoscaling.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/deploy-app-withconnection-string.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
 ❯ kubectl delete namespace keda-dotnet-sample
 ```
 
@@ -311,7 +311,7 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Uninstall KEDA
 
 ```cli
-❯ helm delete --purge keda
+❯ helm uninstall keda --namespace keda
 ❯ kubectl delete customresourcedefinition  scaledobjects.keda.sh
 ❯ kubectl delete customresourcedefinition  triggerauthentications.keda.sh
 ❯ kubectl delete namespace keda
