@@ -17,6 +17,8 @@ spec:
       - name: order-processor
         image: kedasamples/sample-dotnet-worker-servicebus-queue
         env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ConnectionString
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
