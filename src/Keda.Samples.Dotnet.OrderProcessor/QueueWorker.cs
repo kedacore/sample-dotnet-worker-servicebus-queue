@@ -24,11 +24,12 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var messageProcessor = CreateServiceBusProcessor();
+            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_NAME");
+            var messageProcessor = CreateServiceBusProcessor(queueName);
             messageProcessor.ProcessMessageAsync += HandleMessageAsync;
             messageProcessor.ProcessErrorAsync += HandleReceivedExceptionAsync;
-
-            Logger.LogInformation("Starting message pump");
+            
+            Logger.LogInformation($"Starting message pump on queue {queueName} in namespace {messageProcessor.FullyQualifiedNamespace}");
             await messageProcessor.StartProcessingAsync(stoppingToken);
             Logger.LogInformation("Message pump started");
 
@@ -42,9 +43,8 @@ namespace Keda.Samples.Dotnet.OrderProcessor
             Logger.LogInformation("Message pump closed : {Time}", DateTimeOffset.UtcNow);
         }
 
-        private ServiceBusProcessor CreateServiceBusProcessor()
+        private ServiceBusProcessor CreateServiceBusProcessor(string queueName)
         {
-            var queueName = Configuration.GetValue<string>("KEDA_SERVICEBUS_QUEUE_NAME");
             var serviceBusClient = AuthenticateToAzureServiceBus();
             var messageProcessor = serviceBusClient.CreateProcessor(queueName);
             return messageProcessor;
@@ -59,13 +59,16 @@ namespace Keda.Samples.Dotnet.OrderProcessor
             switch (authenticationMode)
             {
                 case AuthenticationMode.ConnectionString:
+                    Logger.LogInformation($"Authentication by using connection string");
                     serviceBusClient = ServiceBusClientFactory.CreateWithConnectionStringAuthentication(Configuration);
                     break;
                 case AuthenticationMode.ServicePrinciple:
+                    Logger.LogInformation("Authentication by using service principle");
                     serviceBusClient = ServiceBusClientFactory.CreateWithServicePrincipleAuthentication(Configuration);
                     break;
                 case AuthenticationMode.ManagedIdentity:
-                    serviceBusClient = ServiceBusClientFactory.CreateWithManagedIdentityAuthentication(Configuration);
+                    Logger.LogInformation("Authentication by using managed identity");
+                    serviceBusClient = ServiceBusClientFactory.CreateWithManagedIdentityAuthentication(Configuration, Logger);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -76,22 +79,34 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 
         private async Task HandleMessageAsync (ProcessMessageEventArgs processMessageEventArgs)
         {
-            var rawMessageBody = Encoding.UTF8.GetString(processMessageEventArgs.Message.Body.ToBytes().ToArray());
-            Logger.LogInformation("Received message {MessageId} with body {MessageBody}", processMessageEventArgs.Message.MessageId, rawMessageBody);
-
-            var order = JsonConvert.DeserializeObject<TMessage>(rawMessageBody);
-            if (order != null)
+            try
             {
-                await ProcessMessage(order, processMessageEventArgs.Message.MessageId, processMessageEventArgs.Message.ApplicationProperties, processMessageEventArgs.CancellationToken);
+                var rawMessageBody = Encoding.UTF8.GetString(processMessageEventArgs.Message.Body.ToBytes().ToArray());
+                Logger.LogInformation("Received message {MessageId} with body {MessageBody}",
+                    processMessageEventArgs.Message.MessageId, rawMessageBody);
+
+                var order = JsonConvert.DeserializeObject<TMessage>(rawMessageBody);
+                if (order != null)
+                {
+                    await ProcessMessage(order, processMessageEventArgs.Message.MessageId,
+                        processMessageEventArgs.Message.ApplicationProperties,
+                        processMessageEventArgs.CancellationToken);
+                }
+                else
+                {
+                    Logger.LogError(
+                        "Unable to deserialize to message contract {ContractName} for message {MessageBody}",
+                        typeof(TMessage), rawMessageBody);
+                }
+
+                Logger.LogInformation("Message {MessageId} processed", processMessageEventArgs.Message.MessageId);
+
+                await processMessageEventArgs.CompleteMessageAsync(processMessageEventArgs.Message);
             }
-            else
+            catch (Exception ex)
             {
-                Logger.LogError("Unable to deserialize to message contract {ContractName} for message {MessageBody}", typeof(TMessage), rawMessageBody);
+                Logger.LogError(ex, "Unable to handle message");
             }
-
-            Logger.LogInformation("Message {MessageId} processed", processMessageEventArgs.Message.MessageId);
-
-            await processMessageEventArgs.CompleteMessageAsync(processMessageEventArgs.Message);
         }
 
         private Task HandleReceivedExceptionAsync(ProcessErrorEventArgs exceptionEvent)
