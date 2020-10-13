@@ -7,15 +7,15 @@ services:
       - KEDA_SERVICEBUS_QUEUE_NAME=orders
      
       # Authentication mode: Connection string
-      #- KEDA_SERVICEBUS_AUTH_MODE=ConnectionString
-      #- KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>
+      - KEDA_SERVICEBUS_AUTH_MODE=ConnectionString
+      - KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING=<connection-string>
       
       # Authentication mode: Service Principle
-      - KEDA_SERVICEBUS_AUTH_MODE=ServicePrinciple
-      - KEDA_SERVICEBUS_HOST_NAME=<service-bus-namespace>.servicebus.windows.net
-      - KEDA_SERVICEBUS_TENANT_ID=<ad-tenant-id>
-      - KEDA_SERVICEBUS_IDENTITY_APPID=<ad-idenity-app-id>
-      - KEDA_SERVICEBUS_IDENTITY_SECRET=<ad-idenity-app-secret>
+      # - KEDA_SERVICEBUS_AUTH_MODE=ServicePrinciple
+      # - KEDA_SERVICEBUS_HOST_NAME=<service-bus-namespace>.servicebus.windows.net
+      # - KEDA_SERVICEBUS_TENANT_ID=<ad-tenant-id>
+      # - KEDA_SERVICEBUS_IDENTITY_APPID=<ad-idenity-app-id>
+      # - KEDA_SERVICEBUS_IDENTITY_SECRET=<ad-idenity-app-secret>
       
       # Authentication mode: Managed Identity
       #- KEDA_SERVICEBUS_AUTH_MODE=ManagedIdentity
