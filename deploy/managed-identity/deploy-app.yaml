@@ -1,0 +1,47 @@
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: order-processor-identity
+  annotations:
+    aadpodidentity.k8s.io/Behavior: namespaced
+spec:
+  type: 0 # 0 means User-assigned MSI
+  resourceID: /subscriptions/0f9d7fea-99e8-4768-8672-06a28514f77e/resourcegroups/pod-identity-sandbox/providers/Microsoft.ManagedIdentity/userAssignedIdentities/service-bus-processor-identity
+  clientID: de837451-8ffe-49c8-82d1-e3040864ebab
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: order-processor-identity-binding
+spec:
+  azureIdentity: order-processor-identity
+  selector: order-processor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-processor
+  labels:
+    app: order-processor
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+  template:
+    metadata:
+      labels:
+        app: order-processor
+        aadpodidbinding: order-processor
+    spec:
+      containers:
+      - name: order-processor
+        image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue:mi-support
+        env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ManagedIdentity
+        - name: KEDA_SERVICEBUS_HOST_NAME
+          value: keda-demos.servicebus.windows.net
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: orders
+        - name: KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID
+          value: de837451-8ffe-49c8-82d1-e3040864ebab
