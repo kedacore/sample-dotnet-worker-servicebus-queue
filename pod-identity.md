@@ -57,11 +57,15 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster with [KEDA v2.0+ installed](https://keda.sh/docs/2.0/deploy/)
+- Kubernetes cluster [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity) installed
 
 ## Setup
 
 This setup will go through creating an Azure Service Bus queue  and deploying this consumer with the `ScaledObject` to scale via KEDA.  If you already have an Azure Service Bus namespace you can use your existing queues.
+
+## Creating Azure AD identities for our application & KEDA
+
+> 🚨 **TODO here is to create AD identities**
 
 ### Creating a new Azure Service Bus namespace & queue
 
@@ -77,32 +81,7 @@ After that, we create an `orders` queue in our namespace:
 ❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
-We need to be able to connect to our queue, so we create a new authorization rule with `Listen` permissions which our app will use to process messages.
-
-```cli
-❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer --rights Listen
-```
-
-Once the authorization rule is created, we can list the connection string as following:
-
-```cli
-❯ az servicebus queue authorization-rule keys list --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer
-{
-  "aliasPrimaryConnectionString": null,
-  "aliasSecondaryConnectionString": null,
-  "keyName": "order-consumer",
-  "primaryConnectionString": "Endpoint=sb://keda.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=<redacted>;EntityPath=orders",
-  "primaryKey": "<redacted>",
-  "secondaryConnectionString": "Endpoint=sb://keda.servicebus.windows.net/;SharedAccessKeyName=order-consumer;SharedAccessKey=<redacted>;EntityPath=orders",
-  "secondaryKey": "<redacted>"
-}
-```
-
-Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/deploy-app-withconnection-string.yaml`:
-
-```cli
-❯ echo -n "<connection string>" | base64
-```
+> 🚨 **TODO here is to grant AD identities permissions to Service Bus**
 
 ### Deploying our order processor
 
@@ -113,24 +92,19 @@ We will start by creating a new Kubernetes namespace to run our order processor 
 namespace "keda-dotnet-sample" created
 ```
 
-Before we can connect to our queue, we need to create a secret which contains the Service Bus connection string to the queue.
+> 🚨 **TODO here is to create AzureIdentity**
+> 🚨 **TODO here is to create AzureIdentityBinding to link to our deployment operator to AzureIdentity**
+
+We can now easily deploy our application to Kubernetes:
 
 ```cli
-❯ kubectl apply -f deploy/deploy-app-withconnection-string.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
+azureidentity.aadpodidentity.k8s.io/order-processor-identity created
+azureidentitybinding.aadpodidentity.k8s.io/order-processor-identity-binding created
 deployment.apps/order-processor created
-secret/secrets-order-consumer created
 ```
 
-Once created, you should be able to retrieve the secret:
-
-```cli
-❯ kubectl get secrets --namespace keda-dotnet-sample
-
-NAME                  TYPE                                  DATA      AGE
-secrets-order-consumer         Opaque                                1         24s
-```
-
-Next to that, you will see that our deployment shows up with one pods created:
+You will see that our deployment shows up with one pods created:
 
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
@@ -138,25 +112,46 @@ NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAIN
 order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
+### Installing KEDA
+
+TBW
+
+> 🚨 **TODO here is to create AzureIdentity**
+
+TBW - with [KEDA v2.0+](https://keda.sh/docs/2.0/deploy/)
+
+> 🚨 **TODO here is to install KEDA with pod identity link**
+
+TBW
+
+> 🚨 **TODO here is to create AzureIdentityBinding to link KEDA operator to AzureIdentity**
+
 ### Deploying our autoscaling
 
-First things first, we will create a new authorization rule with `Management` permissions so that KEDA can monitor it.
+First things first, we will grant the Azure AD identity for KEDA required permissions on our Azure Service Bus namespace to be able to query the metrics.
 
-```cli
-❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name keda-monitor --rights Manage Send Listen
+> 🚨 **TODO here is to grant AD for KEDA access to query metrics**
+
+Now that we have our Azure AD identity configured, we can use the identity in a `TriggerAuthentication` as following:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: trigger-auth-service-bus-orders
+spec:
+  podIdentity:
+    provider: azure
 ```
 
-Get and encode the connection string as mentioned above and store it in `servicebus-order-management-connectionstring` for our secret in `deploy-autoscaling.yaml`.
-
-We have our secret configured, defined a `TriggerAuthentication` for KEDA to authenticate with and defined how our app should scale with a `ScaledObject` - We are ready to go!
+This tells KEDA to authenticate to Azure Service Bus by using Managed Identity, which will be using Azure AD Pod Identity, to be able to query the metrics. With that KEDA can scale our app based on our defined `ScaledObject` - We are ready to go!
 
 Now let's create everything:
 
 ```cli
-❯ kubectl apply -f .\deploy\deploy-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f .\deploy\deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
-secret/secrets-order-consumer configured
-scaledobject.keda.sh/order-processor-scaler created
+scaledobject.keda.sh/order-scaler created
 ```
 
 Once created, you will see that our deployment shows up with no pods created:
