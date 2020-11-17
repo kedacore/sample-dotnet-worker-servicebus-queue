@@ -1,0 +1,16 @@
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: app-autoscaler-identity
+spec:
+  type: 0 # 0 means User-assigned MSI
+  resourceID: /subscriptions/0f9d7fea-99e8-4768-8672-06a28514f77e/resourcegroups/pod-identity-sandbox/providers/Microsoft.ManagedIdentity/userAssignedIdentities/app-autoscaler-identity
+  clientID: 4df6a6e6-5f4a-43b1-a451-0713ebc6095d
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: app-autoscaler-identity-binding
+spec:
+  azureIdentity: app-autoscaler-identity
+  selector: app-autoscaler
