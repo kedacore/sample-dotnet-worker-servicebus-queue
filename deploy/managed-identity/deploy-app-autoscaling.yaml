@@ -18,7 +18,7 @@ spec:
   triggers:
   - type: azure-servicebus
     metadata:
-      namespace: keda-demos
+      namespace: <namespace-name>
       queueName: orders
       messageCount: '5'
     authenticationRef:

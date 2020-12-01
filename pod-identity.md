@@ -179,8 +179,10 @@ Next, we'll create a namespace for KEDA and install the Helm chart where we spec
 
 ```cli
 kubectl create namespace keda-system
-helm install keda kedacore/keda --set podIdentity.activeDirectory.identity=<autoscaler-identity-id> --namespace keda-system
+helm install keda kedacore/keda --set podIdentity.activeDirectory.identity=app-autoscaler --namespace keda-system
 ```
+
+We are assigning the `app-autoscaler` identity which refers to the selector in our `AzureIdentityBinding`.
 
 We're ready to scale our app!
 
@@ -193,6 +195,8 @@ We will assign `Azure Service Bus Data Receiver` role to our autoscaler identity
 ```cli
 ❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee <scaler-identity-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
 ```
+
+Last but not least, edit `deploy-app-autoscaling.yaml` to configure your correct Azure Service Bus namespace by replacing `<namespace-name>` with the name so that KEDA can watch its metrics.
 
 Now that we have our Azure AD identity configured, we can use the identity in a `TriggerAuthentication` as following:
 
