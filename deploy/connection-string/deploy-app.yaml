@@ -15,13 +15,17 @@ spec:
     spec:
       containers:
       - name: order-processor
-        image: kedasamples/sample-dotnet-worker-servicebus-queue
+        image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
         env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ConnectionString
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
              name: secrets-order-consumer
              key: servicebus-connectionstring
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: orders
 ---
 apiVersion: v1
 kind: Secret

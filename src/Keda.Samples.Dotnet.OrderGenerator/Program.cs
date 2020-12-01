@@ -1,16 +1,16 @@
 ﻿using Bogus;
 using Keda.Samples.Dotnet.Contracts;
-using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
-using System.Text;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 
 namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string ConnectionString = "<queue-connection-string>";
+        private const string QueueName = "<queue-connection-string>";
+        private const string ConnectionString = "<queue-name>";
 
         static async Task Main(string[] args)
         {
@@ -24,18 +24,17 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 
         private static async Task QueueOrders(int requestedAmount)
         {
-            var serviceBusConnectionStringBuilder = new ServiceBusConnectionStringBuilder(ConnectionString);
-
-            var queueClient = new QueueClient(serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), serviceBusConnectionStringBuilder.EntityPath, ReceiveMode.PeekLock);
+            var serviceBusClient = new ServiceBusClient(ConnectionString);
+            var serviceBusSender = serviceBusClient.CreateSender(QueueName);
 
             for (int currentOrderAmount = 0; currentOrderAmount < requestedAmount; currentOrderAmount++)
             {
                 var order = GenerateOrder();
                 var rawOrder = JsonConvert.SerializeObject(order);
-                var orderMessage = new Message(Encoding.UTF8.GetBytes(rawOrder));
+                var orderMessage = new ServiceBusMessage(rawOrder);
 
                 Console.WriteLine($"Queuing order {order.Id} - A {order.ArticleNumber} for {order.Customer.FirstName} {order.Customer.LastName}");
-                await queueClient.SendAsync(orderMessage);
+                await serviceBusSender.SendMessageAsync(orderMessage);
             }
         }
 

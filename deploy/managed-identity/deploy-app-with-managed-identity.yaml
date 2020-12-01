@@ -1,0 +1,47 @@
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: <app-identity-name>
+  annotations:
+    aadpodidentity.k8s.io/Behavior: namespaced
+spec:
+  type: 0 # 0 means User-assigned MSI
+  resourceID: <app-identity-resource-id>
+  clientID: <app-identity-id>
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: <app-identity-name>-binding
+spec:
+  azureIdentity: <app-identity-name>
+  selector: order-processor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-processor
+  labels:
+    app: order-processor
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+  template:
+    metadata:
+      labels:
+        app: order-processor
+        aadpodidbinding: order-processor
+    spec:
+      containers:
+      - name: order-processor
+        image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
+        env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ManagedIdentity
+        - name: KEDA_SERVICEBUS_HOST_NAME
+          value: <namespace-name>.servicebus.windows.net
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: orders
+        - name: KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID
+          value: <app-identity-id>

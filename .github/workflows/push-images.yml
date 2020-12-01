@@ -1,0 +1,21 @@
+name: Push Docker Images
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  shipments:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker Login
+      uses: docker/login-action@v1.6.0
+      with:
+        registry: ghcr.io
+        username: kedacore
+        password: ${{ secrets.CONTAINER_REGISTRY_KEY }}
+    - name: Build the Docker image
+      run: docker build ./src/ --file ./src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
+    - name: Push the Docker image
+      run: docker push ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest

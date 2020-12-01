@@ -1,0 +1,16 @@
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: <autoscaler-identity-name>
+spec:
+  type: 0 # 0 means User-assigned MSI
+  resourceID: <autoscaler-identity-resource-id>
+  clientID: <autoscaler-identity-id>
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: <autoscaler-identity-name>-binding
+spec:
+  azureIdentity: <autoscaler-identity-name>
+  selector: app-autoscaler
