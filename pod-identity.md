@@ -140,7 +140,7 @@ Before we can deploy our app, we need to replace the placeholders in  `deploy-ap
 Once that is done, we can now easily deploy our application to Kubernetes:
 
 ```cli
-❯ kubectl apply -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/managed-identity/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
 azureidentity.aadpodidentity.k8s.io/<app-identity-name> created
 azureidentitybinding.aadpodidentity.k8s.io/<app-identity-name>-binding created
 deployment.apps/order-processor created
@@ -161,7 +161,7 @@ Before we can install KEDA, we need to create an `AzureIdentity` & `AzureIdentit
 Replace the placeholders in `deploy-autoscaling-infrastructure.yaml` with the identity for the autoscaler and deploy it:
 
 ```cli
-❯ kubectl apply -f deploy/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f deploy/managed-identity/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
 azureidentity.aadpodidentity.k8s.io/<autoscaler-identity-name> created
 azureidentitybinding.aadpodidentity.k8s.io/<autoscaler-identity-name>-binding created
 ```
@@ -353,9 +353,9 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/managed-identity/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/managed-identity/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/managed-identity/deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
 ❯ kubectl delete namespace keda-dotnet-sample
 ```
 

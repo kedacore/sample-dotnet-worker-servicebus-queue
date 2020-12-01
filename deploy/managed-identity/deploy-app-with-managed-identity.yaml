@@ -44,4 +44,4 @@ spec:
         - name: KEDA_SERVICEBUS_QUEUE_NAME
           value: orders
         - name: KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID
-          value: <app-identity-resource-id>
+          value: <app-identity-id>
