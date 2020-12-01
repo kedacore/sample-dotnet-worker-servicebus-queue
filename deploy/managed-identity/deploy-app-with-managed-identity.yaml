@@ -40,7 +40,7 @@ spec:
         - name: KEDA_SERVICEBUS_AUTH_MODE
           value: ManagedIdentity
         - name: KEDA_SERVICEBUS_HOST_NAME
-          value: keda-demos.servicebus.windows.net
+          value: <namespace-name>.servicebus.windows.net
         - name: KEDA_SERVICEBUS_QUEUE_NAME
           value: orders
         - name: KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID
