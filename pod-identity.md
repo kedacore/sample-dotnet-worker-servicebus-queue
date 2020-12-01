@@ -59,7 +59,7 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster
+- Kubernetes cluster [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity) installed
 
 ## Setup
 
@@ -77,8 +77,8 @@ This can easily be done by using `az identity create` in the Azure CLI, for exam
 ```cli
 az identity create --name <identity-name> --resource-group <resource-group-name>
 {
-  "clientId": "5716e756-508d-4d77-9b1b-ae68999fe210",
-  "clientSecretUrl": "https://control-westeurope.identity.azure.net/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>/credentials?tid=<tenant-id>&oid=<redacted>&aid=5716e756-508d-4d77-9b1b-ae68999fe210",
+  "clientId": "<identity-id>",
+  "clientSecretUrl": "https://control-westeurope.identity.azure.net/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>/credentials?tid=<tenant-id>&oid=<redacted>&aid=<identity-id>",
   "id": "/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
   "location": "westeurope",
   "name": "<identity-name>",
@@ -90,7 +90,10 @@ az identity create --name <identity-name> --resource-group <resource-group-name>
 }
 ```
 
-Make sure you create both identities and copy the `id` and `clientId`.
+Make sure to create an app identities & autoscaler identity for which you need to copy the following information:
+
+- `clientId` - Represents the unique id of the identity
+- `id` - Represents the resource id of the identity
 
 ### Creating a new Azure Service Bus namespace & queue
 
@@ -112,23 +115,13 @@ Next, we need to grant our identities to be able to authenticate to Azure Servic
 ❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
-### Granting our identities access to our Azure Service Bus namespace
-
-Now that we have an Azure Service Bus namespace we can grant our identities access.
-
-We will start by assigning our application identity `Azure Service Bus Data Receiver` role to our namespace:
+Now that we have an Azure Service Bus namespace we can grant our app identity Azure Service Bus Data Receiver` role to our namespace so that it can process messages:
 
 ```cli
-❯ az role assignment create --role 'Azure Service Bus Data Receiver' --assignee 5716e756-508d-4d77-9b1b-ae68999fe210 --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+❯ az role assignment create --role 'Azure Service Bus Data Receiver' --assignee <app-identity-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
 ```
 
-We will start by assigning our autoscaling identity `Azure Service Bus Data Receiver` role to our namespace:
-
-```cli
-❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee 54eafc4f-0191-4b00-83f5-9232032789f9 --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
-```
-
-### Deploying our order processor
+## Deploying our order processor
 
 We will start by creating a new Kubernetes namespace to run our order processor in:
 
@@ -137,10 +130,16 @@ We will start by creating a new Kubernetes namespace to run our order processor 
 namespace "keda-dotnet-sample" created
 ```
 
-> 🚨 **TODO here is to create AzureIdentity**
-> 🚨 **TODO here is to create AzureIdentityBinding to link to our deployment operator to AzureIdentity**
+First, we need to update our `deploy-app-with-managed-identity.yaml` which will create our Kubernetes deployment along with the authentication information for Azure AD Pod Identity.
 
-We can now easily deploy our application to Kubernetes:
+This includes the following resources:
+
+- [`AzureIdentity`](https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/) which represents our application identity in Azure
+- [`AzureIdentityBinding`] (https://azure.github.io/aad-pod-identity/docs/concepts/azureidentitybinding/) which binds our AzureIdentity to our Kubernetes deployment
+
+Before we can deploy our app, we need to replace the placeholders in  `deploy-app-with-managed-identity.yaml` with the values for your application identity.
+
+Once that is done, we can now easily deploy our application to Kubernetes:
 
 ```cli
 ❯ kubectl apply -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
@@ -157,7 +156,7 @@ NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAIN
 order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
 
-### Installing KEDA
+## Installing KEDA
 
 TBW
 
@@ -171,11 +170,15 @@ TBW
 
 > 🚨 **TODO here is to create AzureIdentityBinding to link KEDA operator to AzureIdentity**
 
-### Deploying our autoscaling
+## Deploying our autoscaling
 
 First things first, we will grant the Azure AD identity for KEDA required permissions on our Azure Service Bus namespace to be able to query the metrics.
 
-> 🚨 **TODO here is to grant AD for KEDA access to query metrics**
+We will assign `Azure Service Bus Data Receiver` role to our autoscaler identity given it needs more control for monitoring our namespace:
+
+```cli
+❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee <scaler-identity-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+```
 
 Now that we have our Azure AD identity configured, we can use the identity in a `TriggerAuthentication` as following:
 
@@ -336,8 +339,9 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/deploy-autoscaling.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/deploy-app-withconnection-string.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
 ❯ kubectl delete namespace keda-dotnet-sample
 ```
 
@@ -345,6 +349,13 @@ You'll need to wait a short while until the public IP is created and shown in th
 
 ```cli
 ❯ az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
+```
+
+### Delete the Azure identities
+
+```cli
+❯ az identity delete --name <scaler-identity-name> --resource-group <resource-group>
+❯ az identity delete --name <app-identity-name> --resource-group <resource-group>
 ```
 
 ### Uninstall KEDA
