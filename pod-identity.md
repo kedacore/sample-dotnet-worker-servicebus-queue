@@ -59,6 +59,14 @@ This allows us to not only re-use this authentication resource but also assign d
 - .NET Core 3.0
 - Kubernetes cluster [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity) installed
 
+> 💡 *Ensure that all the required Azure AD Pod Identity role assignments for your AKS cluster are correct according to the [documentation](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/).*
+>
+> This involves:
+>
+> - Assigning [`Virtual Machine Contributor`](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#virtual-machine-contributor) to the node resource group of your AKS cluster
+> - Assigning [`Managed Identity Operator`](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator) to the resource group that contains your identities.
+>   - Learn more about it in the docs for [identities in node resource group](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#performing-role-assignments) or [outside of the node resource group](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#user-assigned-identities-that-are-not-within-the-node-resource-group)
+
 ## Setup
 
 This setup will go through creating an Azure Service Bus queue  and deploying this consumer with the `ScaledObject` to scale via KEDA.  If you already have an Azure Service Bus namespace you can use your existing queues.
