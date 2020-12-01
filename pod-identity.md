@@ -133,7 +133,7 @@ First, we need to update our `deploy-app-with-managed-identity.yaml` which will 
 This includes the following resources:
 
 - [`AzureIdentity`](https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/) which represents our application identity in Azure
-- [`AzureIdentityBinding`] (https://azure.github.io/aad-pod-identity/docs/concepts/azureidentitybinding/) which binds our AzureIdentity to our Kubernetes deployment
+- [`AzureIdentityBinding`](https://azure.github.io/aad-pod-identity/docs/concepts/azureidentitybinding/) which binds our AzureIdentity to our Kubernetes deployment
 
 Before we can deploy our app, we need to replace the placeholders in  `deploy-app-with-managed-identity.yaml` with the values for your application identity.
 
@@ -141,8 +141,8 @@ Once that is done, we can now easily deploy our application to Kubernetes:
 
 ```cli
 ❯ kubectl apply -f deploy/deploy-app-with-managed-identity.yaml --namespace keda-dotnet-sample
-azureidentity.aadpodidentity.k8s.io/order-processor-identity created
-azureidentitybinding.aadpodidentity.k8s.io/order-processor-identity-binding created
+azureidentity.aadpodidentity.k8s.io/<app-identity-name> created
+azureidentitybinding.aadpodidentity.k8s.io/<app-identity-name>-binding created
 deployment.apps/order-processor created
 ```
 
@@ -156,17 +156,33 @@ order-processor   1         1         1           1           49s       order-pr
 
 ## Installing KEDA
 
-TBW
+Before we can install KEDA, we need to create an `AzureIdentity` & `AzureIdentityBinding` for our it and similar to our application identity setup.
 
-> 🚨 **TODO here is to create AzureIdentity**
+Replace the placeholders in `deploy-autoscaling-infrastructure.yaml` with the identity for the autoscaler and deploy it:
 
-TBW - with [KEDA v2.0+](https://keda.sh/docs/2.0/deploy/)
+```cli
+❯ kubectl apply -f deploy/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
+azureidentity.aadpodidentity.k8s.io/<autoscaler-identity-name> created
+azureidentitybinding.aadpodidentity.k8s.io/<autoscaler-identity-name>-binding created
+```
 
-> 🚨 **TODO here is to install KEDA with pod identity link**
+With that in place, we can [install KEDA v2.0+](https://keda.sh/docs/2.0/deploy/) with Helm.
 
-TBW
+First, add the KEDA Helm repo and update it:
 
-> 🚨 **TODO here is to create AzureIdentityBinding to link KEDA operator to AzureIdentity**
+```cli
+> helm repo add kedacore https://kedacore.github.io/charts
+> helm repo update
+```
+
+Next, we'll create a namespace for KEDA and install the Helm chart where we specify our autoscaler identity id:
+
+```cli
+kubectl create namespace keda-system
+helm install keda kedacore/keda --set podIdentity.activeDirectory.identity=<autoscaler-identity-id> --namespace keda-system
+```
+
+We're ready to scale our app!
 
 ## Deploying our autoscaling
 
