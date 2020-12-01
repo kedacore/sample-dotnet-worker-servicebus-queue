@@ -59,15 +59,38 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity) installed
+- Kubernetes cluster
 
 ## Setup
 
 This setup will go through creating an Azure Service Bus queue  and deploying this consumer with the `ScaledObject` to scale via KEDA.  If you already have an Azure Service Bus namespace you can use your existing queues.
 
-## Creating Azure AD identities for our application & KEDA
+## Creating Azure AD identities
 
-> 🚨 **TODO here is to create AD identities**
+We will first create two Azure AD identities:
+
+- An identity for our application to authenticate with
+- An identity for our KEDA to authenticate with
+
+This can easily be done by using `az identity create` in the Azure CLI, for example:
+
+```cli
+az identity create --name <identity-name> --resource-group <resource-group-name>
+{
+  "clientId": "5716e756-508d-4d77-9b1b-ae68999fe210",
+  "clientSecretUrl": "https://control-westeurope.identity.azure.net/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>/credentials?tid=<tenant-id>&oid=<redacted>&aid=5716e756-508d-4d77-9b1b-ae68999fe210",
+  "id": "/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
+  "location": "westeurope",
+  "name": "<identity-name>",
+  "principalId": "<redacted>",
+  "resourceGroup": "<resource-group-name>",
+  "tags": {},
+  "tenantId": "<tenant-id>",
+  "type": "Microsoft.ManagedIdentity/userAssignedIdentities"
+}
+```
+
+Make sure you create both identities and copy the `id` and `clientId`.
 
 ### Creating a new Azure Service Bus namespace & queue
 
@@ -83,7 +106,27 @@ After that, we create an `orders` queue in our namespace:
 ❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
-> 🚨 **TODO here is to grant AD identities permissions to Service Bus**
+Next, we need to grant our identities to be able to authenticate to Azure Service Bus.
+
+```cli
+❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
+```
+
+### Granting our identities access to our Azure Service Bus namespace
+
+Now that we have an Azure Service Bus namespace we can grant our identities access.
+
+We will start by assigning our application identity `Azure Service Bus Data Receiver` role to our namespace:
+
+```cli
+❯ az role assignment create --role 'Azure Service Bus Data Receiver' --assignee 5716e756-508d-4d77-9b1b-ae68999fe210 --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+```
+
+We will start by assigning our autoscaling identity `Azure Service Bus Data Receiver` role to our namespace:
+
+```cli
+❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee 54eafc4f-0191-4b00-83f5-9232032789f9 --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+```
 
 ### Deploying our order processor
 
