@@ -52,8 +52,6 @@ In this case, we are telling KEDA to use Azure as a pod identity provider. Under
 
 This allows us to not only re-use this authentication resource but also assign different permissions to KEDA than our app itself by assigning another Azure AD App to KEDA.
 
-# !!! ALL BELOW IS TODO !!!
-
 ## Pre-requisites
 
 - Azure CLI
