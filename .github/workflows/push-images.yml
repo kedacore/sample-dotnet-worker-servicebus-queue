@@ -4,7 +4,7 @@ on:
     branches: [ main ]
 
 jobs:
-  shipments:
+  build_and_push:
     runs-on: ubuntu-latest
 
     steps:
