@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
       - name: order-processor
-        image: tomkerkhove/keda-sample-dotnet-worker-servicebus-queue:mi-support
+        image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
         env:
         - name: KEDA_SERVICEBUS_AUTH_MODE
           value: ManagedIdentity
