@@ -1,20 +1,20 @@
 apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentity
 metadata:
-  name: order-processor-identity
+  name: <app-identity-name>
   annotations:
     aadpodidentity.k8s.io/Behavior: namespaced
 spec:
   type: 0 # 0 means User-assigned MSI
-  resourceID: /subscriptions/0f9d7fea-99e8-4768-8672-06a28514f77e/resourcegroups/pod-identity-sandbox/providers/Microsoft.ManagedIdentity/userAssignedIdentities/service-bus-processor-identity
-  clientID: de837451-8ffe-49c8-82d1-e3040864ebab
+  resourceID: <app-identity-resource-id>
+  clientID: <app-identity-id>
 ---
 apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentityBinding
 metadata:
-  name: order-processor-identity-binding
+  name: <app-identity-name>-binding
 spec:
-  azureIdentity: order-processor-identity
+  azureIdentity: <app-identity-name>
   selector: order-processor
 ---
 apiVersion: apps/v1
@@ -44,4 +44,4 @@ spec:
         - name: KEDA_SERVICEBUS_QUEUE_NAME
           value: orders
         - name: KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID
-          value: de837451-8ffe-49c8-82d1-e3040864ebab
+          value: <app-identity-resource-id>
