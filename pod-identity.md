@@ -18,10 +18,10 @@ metadata:
   name: order-processor-scaler
   labels:
     app: order-processor
-    deploymentName: order-processor
+    name: order-processor
 spec:
   scaleTargetRef:
-    deploymentName: order-processor
+    name: order-processor
   # minReplicaCount: 0 Change to define how many minimum replicas you want
   maxReplicaCount: 10
   triggers:
