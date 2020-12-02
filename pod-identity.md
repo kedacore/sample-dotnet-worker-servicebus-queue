@@ -1,6 +1,8 @@
 # .NET Core worker processing Azure Service Bus Queue scaled by KEDA with Azure AD Pod Identity
 A simple Docker container written in .NET that will receive messages from a Service Bus queue and scale via KEDA with Azure AD Pod Identity.
 
+*This sample uses AAD Pod Identity project and manages the identities ourselves, but if you want a simplified approach we recommend having a look at the [Azure Active Directory pod-managed identities in Azure Kubernetes Service (Preview)](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity).*
+
 ![Scenario](./images/managed-identity-scenario.png)
 
 > 💡 *If you want to learn how to scale this sample with KEDA 1.0, feel free to read about it [here](https://github.com/kedacore/sample-dotnet-worker-servicebus-queue/tree/keda-v1.0).*
