@@ -8,4 +8,6 @@ We provide samples for the following scenarios:
 - [**Process Azure Service Bus Queue by using Azure AD Pod Identity**](pod-identity.md)
 - [**Process Azure Service Bus Queue by using connection string authentication**](connection-string-scenario.md)
 
+![Scenario](images/scenario.png)
+
 > 💡 *If you want to learn how to scale this sample with KEDA 1.0, feel free to read about it [here](https://github.com/kedacore/sample-dotnet-worker-servicebus-queue/tree/keda-v1.0).*
