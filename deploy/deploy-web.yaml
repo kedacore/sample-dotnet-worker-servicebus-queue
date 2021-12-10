@@ -15,20 +15,23 @@ spec:
     spec:
       containers:
       - name: order-web
-        image: kedasamples/sample-dotnet-web
+        image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal
         env:
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
           valueFrom:
             secretKeyRef:
-             name: secrets-order-management
-             key: servicebus-order-management-connectionstring
+             name: secrets-order-portal
+             key: servicebus-connectionstring
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: kedasampleweb
   labels:
-    app: order-web
+    app: order-web  
+  annotations:
+    # Expose service on <label-name>.<location>.cloudapp.azure.com
+    service.beta.kubernetes.io/azure-dns-label-name: keda-orders-portal
 spec:
   selector:
     app: order-web
@@ -36,3 +39,12 @@ spec:
     - protocol: TCP
       port: 80
   type: LoadBalancer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets-order-portal
+  labels:
+    app: order-web
+data:
+  servicebus-connectionstring: <base64-encoded-connection-string>

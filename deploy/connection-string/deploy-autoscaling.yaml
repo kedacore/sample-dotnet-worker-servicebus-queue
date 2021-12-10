@@ -24,12 +24,15 @@ metadata:
 spec:
   scaleTargetRef:
     name: order-processor
-  # minReplicaCount: 0 Change to define how many minimum replicas you want
-  maxReplicaCount: 10
+  minReplicaCount: 0 # Change to define how many minimum replicas you want
+  maxReplicaCount: 50
+  # The period to wait after the last trigger reported active before scaling the resource back to 0.
+  # By default it’s 5 minutes (300 seconds).
+  cooldownPeriod: 5
   triggers:
   - type: azure-servicebus
     metadata:
       queueName: orders
-      messageCount: '5'
+      messageCount: '50'
     authenticationRef:
       name: trigger-auth-service-bus-orders
