@@ -4,9 +4,9 @@ on:
     branches: [ main ]
 
 jobs:
-  build_and_push:
+  order_processor:
     runs-on: ubuntu-latest
-
+    name: Order Processor
     steps:
     - uses: actions/checkout@v2
     - name: Docker Login
@@ -19,3 +19,18 @@ jobs:
       run: docker build ./src/ --file ./src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
     - name: Push the Docker image
       run: docker push ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
+  portal:
+    runs-on: ubuntu-latest
+    name: Portal
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker Login
+      uses: docker/login-action@v1.6.0
+      with:
+        registry: ghcr.io
+        username: kedacore
+        password: ${{ secrets.CONTAINER_REGISTRY_KEY }}
+    - name: Build the Docker image
+      run: docker build ./src/ --file ./src/Keda.Samples.DotNet.Web/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal:latest
+    - name: Push the Docker image
+      run: docker push ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal:latest
