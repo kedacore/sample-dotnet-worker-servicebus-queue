@@ -7,10 +7,10 @@ namespace Keda.Samples.Dotnet.OrderProcessor
 {
     public static class ServiceBusClientFactory
     {
-        public static ServiceBusClient CreateWithManagedIdentityAuthentication(IConfiguration configuration, ILogger logger)
+        public static ServiceBusClient CreateWithPodIdentityAuthentication(IConfiguration configuration, ILogger logger)
         {
             var hostname = configuration.GetValue<string>("KEDA_SERVICEBUS_HOST_NAME");
-           
+
             var clientIdentityId = configuration.GetValue<string>("KEDA_SERVICEBUS_IDENTITY_USERASSIGNEDID", defaultValue: null);
             if (string.IsNullOrWhiteSpace(clientIdentityId) == false)
             {
@@ -18,6 +18,13 @@ namespace Keda.Samples.Dotnet.OrderProcessor
             }
 
             return new ServiceBusClient(hostname, new ManagedIdentityCredential(clientId: clientIdentityId));
+        }
+
+        public static ServiceBusClient CreateWithWorkloadIdentityAuthentication(IConfiguration configuration, ILogger logger)
+        {
+            var hostname = configuration.GetValue<string>("KEDA_SERVICEBUS_HOST_NAME");
+
+            return new ServiceBusClient(hostname, new ManagedIdentityCredential());
         }
 
         public static ServiceBusClient CreateWithServicePrincipleAuthentication(IConfiguration configuration)

@@ -66,9 +66,13 @@ namespace Keda.Samples.Dotnet.OrderProcessor
                     Logger.LogInformation("Authentication by using service principle");
                     serviceBusClient = ServiceBusClientFactory.CreateWithServicePrincipleAuthentication(Configuration);
                     break;
-                case AuthenticationMode.ManagedIdentity:
-                    Logger.LogInformation("Authentication by using managed identity");
-                    serviceBusClient = ServiceBusClientFactory.CreateWithManagedIdentityAuthentication(Configuration, Logger);
+                case AuthenticationMode.PodIdentity:
+                    Logger.LogInformation("Authentication by using pod identity");
+                    serviceBusClient = ServiceBusClientFactory.CreateWithPodIdentityAuthentication(Configuration, Logger);
+                    break;
+                case AuthenticationMode.WorkloadIdentity:
+                    Logger.LogInformation("Authentication by using workload identity");
+                    serviceBusClient = ServiceBusClientFactory.CreateWithWorkloadIdentityAuthentication(Configuration, Logger);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
