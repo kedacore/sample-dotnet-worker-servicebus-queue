@@ -360,7 +360,7 @@ kedasampleweb   LoadBalancer   10.0.37.60   52.157.87.179   80:30919/TCP   117s
 
 You'll need to wait a short while until the public IP is created and shown in the output. 
 
-![Visualize message queue](/images/kedaweb.png)
+![Visualize message queue](./images/kedaweb.png)
 
 ## Cleaning up resources
 
