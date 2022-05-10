@@ -105,9 +105,7 @@ This can easily be done by using `az ad app create` in the Azure CLI, for exampl
     "support": null,
     "termsOfService": null
   },
-  .
-  .
-  .
+  // [...]
 }
 ```
 
@@ -125,13 +123,10 @@ Next, we create the underlying service principle for the applications.
   "alternativeNames": [],
   "appDisplayName": "order-processor",
   "appId": "<app-id>",
-  .
-  .
-  .
+  // [...]
   "objectId": "<service-principle-object-id>",
-  .
-  .
-  .
+  // [...]
+}
 ```
 
 For each of the service principles, copy the following information -
