@@ -1,7 +1,7 @@
 # .NET Core worker processing Azure Service Bus Queue scaled by KEDA with Azure AD Workload Identity
 A simple Docker container written in .NET that will receive messages from a Service Bus queue and scale via KEDA with Azure AD Workload Identity.
 
-![Scenario](./images/managed-identity-scenario.png)
+![Scenario](./images/workload-identity-scenario.png)
 
 > 💡 *If you want to learn how to scale this sample with KEDA 1.0, feel free to read about it [here](https://github.com/kedacore/sample-dotnet-worker-servicebus-queue/tree/keda-v1.0).*
 
