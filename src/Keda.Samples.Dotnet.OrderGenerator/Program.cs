@@ -9,8 +9,8 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string QueueName = "<queue-connection-string>";
-        private const string ConnectionString = "<queue-name>";
+        private const string QueueName = "<queue-name>";
+        private const string ConnectionString = "<service-bus-connection-string>";
 
         static async Task Main(string[] args)
         {

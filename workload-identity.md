@@ -1,9 +1,7 @@
-# .NET Core worker processing Azure Service Bus Queue scaled by KEDA with Azure AD Pod Identity
-A simple Docker container written in .NET that will receive messages from a Service Bus queue and scale via KEDA with Azure AD Pod Identity.
+# .NET Core worker processing Azure Service Bus Queue scaled by KEDA with Azure AD Workload Identity
+A simple Docker container written in .NET that will receive messages from a Service Bus queue and scale via KEDA with Azure AD Workload Identity.
 
-*This sample uses AAD Pod Identity project and manages the identities ourselves, but if you want a simplified approach we recommend having a look at the [Azure Active Directory pod-managed identities in Azure Kubernetes Service (Preview)](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity).*
-
-![Scenario](./images/pod-identity-scenario.png)
+![Scenario](./images/workload-identity-scenario.png)
 
 > 💡 *If you want to learn how to scale this sample with KEDA 1.0, feel free to read about it [here](https://github.com/kedacore/sample-dotnet-worker-servicebus-queue/tree/keda-v1.0).*
 
@@ -47,10 +45,10 @@ metadata:
   name: trigger-auth-service-bus-orders
 spec:
   podIdentity:
-    provider: azure
+    provider: azure-workload
 ```
 
-In this case, we are telling KEDA to use Azure as a pod identity provider. Under the hood, it will use [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity).
+In this case, we are telling KEDA to use Azure Workload as a pod identity provider. Under the hood, it will use [Azure AD Workload Identity](https://github.com/Azure/azure-workload-identity).
 
 This allows us to not only re-use this authentication resource but also assign different permissions to KEDA than our app itself by assigning another Azure AD App to KEDA.
 
@@ -59,49 +57,81 @@ This allows us to not only re-use this authentication resource but also assign d
 - Azure CLI
 - Azure Subscription
 - .NET Core 3.0
-- Kubernetes cluster [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity) installed
+- Kubernetes cluster with [Azure AD Workload Identity](https://github.com/Azure/azure-workload-identity) installed
 
-> 💡 *Ensure that all the required Azure AD Pod Identity role assignments for your AKS cluster are correct according to the [documentation](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/).*
+> 💡 *Ensure that a public OIDC issuer URL and webhook has been setup for your cluster as per the [documentation](https://azure.github.io/azure-workload-identity/docs/installation.html).*
 >
-> This involves:
->
-> - Assigning [`Virtual Machine Contributor`](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#virtual-machine-contributor) to the node resource group of your AKS cluster
-> - Assigning [`Managed Identity Operator`](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator) to the resource group that contains your identities.
->   - Learn more about it in the docs for [identities in node resource group](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#performing-role-assignments) or [outside of the node resource group](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#user-assigned-identities-that-are-not-within-the-node-resource-group)
+> For an AKS Cluster this involves:
+> - Registering the [`EnableOIDCIssuerPreview`](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#register-the-enableoidcissuerpreview-feature-flag) feature flag for your Azure subscription.
+> - Enabling the [`OIDC issuer`](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#update-an-aks-cluster-with-oidc-issuer) for your cluster.
+> - Obtaining the [`issuer url`](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#show-the-oidc-issuer-url).
+> - Installing the [`webhook`](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html).
 
 ## Setup
 
 This setup will go through creating an Azure Service Bus queue  and deploying this consumer with the `ScaledObject` to scale via KEDA.  If you already have an Azure Service Bus namespace you can use your existing queues.
 
-## Creating Azure AD identities
+## Creating Azure AD Applications
 
-We will first create two Azure AD identities:
+We will first create two Azure AD applications:
 
-- An identity for our application to authenticate with
-- An identity for our KEDA to authenticate with
+- An application for our order processor to authenticate with
+- An application for KEDA to authenticate with
 
-This can easily be done by using `az identity create` in the Azure CLI, for example:
+This can easily be done by using `az ad app create` in the Azure CLI, for example:
 
 ```cli
-az identity create --name <identity-name> --resource-group <resource-group-name>
+❯ az ad app create --display-name <app-name> --native-app --required-resource-accesses @deploy/workload-identity/manifest.json
 {
-  "clientId": "<identity-id>",
-  "clientSecretUrl": "https://control-westeurope.identity.azure.net/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>/credentials?tid=<tenant-id>&oid=<redacted>&aid=<identity-id>",
-  "id": "/subscriptions/<subscription-id>/resourcegroups/<resource-group-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
-  "location": "westeurope",
-  "name": "<identity-name>",
-  "principalId": "<redacted>",
-  "resourceGroup": "<resource-group-name>",
-  "tags": {},
-  "tenantId": "<tenant-id>",
-  "type": "Microsoft.ManagedIdentity/userAssignedIdentities"
+  "acceptMappedClaims": null,
+  "addIns": [],
+  "allowGuestsSignIn": null,
+  "allowPassthroughUsers": null,
+  "appId": "<app-id>",
+  "appLogoUrl": null,
+  "appPermissions": null,
+  "appRoles": [],
+  "applicationTemplateId": null,
+  "availableToOtherTenants": false,
+  "deletionTimestamp": null,
+  "displayName": "order-processor",
+  "errorUrl": null,
+  "groupMembershipClaims": null,
+  "homepage": null,
+  "identifierUris": [],
+  "informationalUrls": {
+    "marketing": null,
+    "privacy": null,
+    "support": null,
+    "termsOfService": null
+  },
+  // [...]
 }
 ```
 
-Make sure to create an app identities & autoscaler identity for which you need to copy the following information:
+Make sure to create the apps for our order processor and KEDA. For each of the applications, you need to copy the following information -
 
-- `clientId` - Represents the unique id of the identity
-- `id` - Represents the resource id of the identity
+- `appId` - Represents the application / client ID of the Azure AD application.
+- `objectId` - Represents the object ID of the Azure AD application.
+
+Next, we create the underlying service principle for the applications.
+```cli
+❯ az ad sp create --id <app-id>
+{
+  "accountEnabled": "True",
+  "addIns": [],
+  "alternativeNames": [],
+  "appDisplayName": "order-processor",
+  "appId": "<app-id>",
+  // [...]
+  "objectId": "<service-principle-object-id>",
+  // [...]
+}
+```
+
+For each of the service principles, copy the following information -
+
+- `objectId` - Represents the object ID of the service principle used by our Azure AD Application.
 
 ### Creating a new Azure Service Bus namespace & queue
 
@@ -117,16 +147,10 @@ After that, we create an `orders` queue in our namespace:
 ❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
-Next, we need to grant our identities to be able to authenticate to Azure Service Bus.
+Now that we have an Azure Service Bus namespace we can grant our order-processor Azure AD App `Azure Service Bus Data Receiver` role on our namespace so that it can process messages:
 
 ```cli
-❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
-```
-
-Now that we have an Azure Service Bus namespace we can grant our app identity Azure Service Bus Data Receiver` role to our namespace so that it can process messages:
-
-```cli
-❯ az role assignment create --role 'Azure Service Bus Data Receiver' --assignee <app-identity-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+❯ az role assignment create --role 'Azure Service Bus Data Receiver' --assignee <service-principle-object-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
 ```
 
 ## Deploying our order processor
@@ -138,21 +162,15 @@ We will start by creating a new Kubernetes namespace to run our order processor 
 namespace "keda-dotnet-sample" created
 ```
 
-First, we need to update our `deploy-app-with-pod-identity.yaml` which will create our Kubernetes deployment along with the authentication information for Azure AD Pod Identity.
+First, we need to update our `deploy-app-with-workload-identity.yaml` which will create our Kubernetes deployment along with the authentication information for Azure AD Workload Identity.
 
-This includes the following resources:
-
-- [`AzureIdentity`](https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/) which represents our application identity in Azure
-- [`AzureIdentityBinding`](https://azure.github.io/aad-pod-identity/docs/concepts/azureidentitybinding/) which binds our AzureIdentity to our Kubernetes deployment
-
-Before we can deploy our app, we need to replace the placeholders in  `deploy-app-with-pod-identity.yaml` with the values for your application identity.
+Before we can deploy our app, we need to replace the placeholders in  `deploy-app-with-workload-identity.yaml` with the values for your Azure AD application.
 
 Once that is done, we can now easily deploy our application to Kubernetes:
 
 ```cli
-❯ kubectl apply -f deploy/pod-identity/deploy-app-with-pod-identity.yaml --namespace keda-dotnet-sample
-azureidentity.aadpodidentity.k8s.io/<app-identity-name> created
-azureidentitybinding.aadpodidentity.k8s.io/<app-identity-name>-binding created
+❯ kubectl apply -f deploy/workload-identity/deploy-app-with-workload-identity.yaml --namespace keda-dotnet-sample
+serviceaccount/order-processor-sa created
 deployment.apps/order-processor created
 ```
 
@@ -160,23 +178,26 @@ You will see that our deployment shows up with one pods created:
 
 ```cli
 ❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
-NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
-order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS        IMAGES                                        SELECTOR
+order-processor   1/1     1            1           48s   order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
+```
+
+## Creating federated credentials between our service account and Azure AD
+
+We need to have our Azure AD applications trust the tokens issued by our service account. This can be done through the CLI.
+
+First, update the `deploy/workload-identity/federate-body.json` file with the information with the appropriate information
+for your cluster and service account `order-processor-sa`. 
+
+After updating, run the following command - 
+
+```cli
+❯ az rest --method POST --uri "https://graph.microsoft.com/beta/applications/<application-object-id>/federatedIdentityCredentials" --body @deploy/workload-identity/federate-body.json
 ```
 
 ## Installing KEDA
 
-Before we can install KEDA, we need to create an `AzureIdentity` & `AzureIdentityBinding` for our it and similar to our application identity setup.
-
-Replace the placeholders in `deploy-autoscaling-infrastructure.yaml` with the identity for the autoscaler and deploy it:
-
-```cli
-❯ kubectl apply -f deploy/pod-identity/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
-azureidentity.aadpodidentity.k8s.io/<autoscaler-identity-name> created
-azureidentitybinding.aadpodidentity.k8s.io/<autoscaler-identity-name>-binding created
-```
-
-With that in place, we can [install KEDA v2.0+](https://keda.sh/docs/2.0/deploy/) with Helm.
+With everything in place, we can [install KEDA v2.8+](https://keda.sh/docs/2.8/deploy/) with Helm.
 
 First, add the KEDA Helm repo and update it:
 
@@ -188,27 +209,34 @@ First, add the KEDA Helm repo and update it:
 Next, we'll create a namespace for KEDA and install the Helm chart where we specify our autoscaler identity id:
 
 ```cli
-kubectl create namespace keda-system
-helm install keda kedacore/keda --set podIdentity.activeDirectory.identity=app-autoscaler --namespace keda-system
+> kubectl create namespace keda-system
+> helm install keda kedacore/keda \
+      --set podIdentity.azureWorkload.enabled=true \
+      --set podIdentity.azureWorkload.clientId={app-id-for-keda-azure-ad-app} \
+      --set podIdentity.azureWorkload.tenantId={tenant-id-for-keda-azure-ad-app} \
+      --namespace keda-system
 ```
 
-We are assigning the `app-autoscaler` identity which refers to the selector in our `AzureIdentityBinding`.
+We are asking KEDA to use the client ID and tenant ID for the Azure AD application we created earlier when using Workload
+Identity.
+
+Repeat the step for creating federated credentials using the service account created for keda.
 
 We're ready to scale our app!
 
 ## Deploying our autoscaling
 
-First things first, we will grant the Azure AD identity for KEDA required permissions on our Azure Service Bus namespace to be able to query the metrics.
+First things first, we will grant the Azure AD application for KEDA required permissions on our Azure Service Bus namespace to be able to query the metrics.
 
-We will assign `Azure Service Bus Data Receiver` role to our autoscaler identity given it needs more control for monitoring our namespace:
+We will assign `Azure Service Bus Data Receiver` role to our autoscaler app given it needs more control for monitoring our namespace:
 
 ```cli
-❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee <scaler-identity-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
+❯ az role assignment create --role 'Azure Service Bus Data Owner' --assignee <service-principle-object-id> --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.ServiceBus/namespaces/<namespace-name>
 ```
 
 Last but not least, edit `deploy-app-autoscaling.yaml` to configure your correct Azure Service Bus namespace by replacing `<namespace-name>` with the name so that KEDA can watch its metrics.
 
-Now that we have our Azure AD identity configured, we can use the identity in a `TriggerAuthentication` as following:
+Now that we have our Azure AD application configured, we can use the identity in a `TriggerAuthentication` as following:
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
@@ -217,15 +245,15 @@ metadata:
   name: trigger-auth-service-bus-orders
 spec:
   podIdentity:
-    provider: azure
+    provider: azure-workload
 ```
 
-This tells KEDA to authenticate to Azure Service Bus by using Managed Identity, which will be using Azure AD Pod Identity, to be able to query the metrics. With that KEDA can scale our app based on our defined `ScaledObject` - We are ready to go!
+This tells KEDA to authenticate to Azure Service Bus by using Managed Identity, which will be using Azure AD Workload Identity, to be able to query the metrics. With that KEDA can scale our app based on our defined `ScaledObject` - We are ready to go!
 
 Now let's create everything:
 
 ```cli
-❯ kubectl apply -f .\deploy\deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f .\deploy\workload-identity\deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 scaledobject.keda.sh/order-scaler created
 ```
@@ -367,9 +395,8 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/pod-identity/deploy-autoscaling-infrastructure.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/pod-identity/deploy-app-with-pod-identity.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/pod-identity/deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/workload-identity/deploy-app-with-workload-identity.yaml --namespace keda-dotnet-sample
+❯ kubectl delete -f deploy/workload-identity/deploy-app-autoscaling.yaml --namespace keda-dotnet-sample
 ❯ kubectl delete namespace keda-dotnet-sample
 ```
 
@@ -381,9 +408,10 @@ You'll need to wait a short while until the public IP is created and shown in th
 
 ### Delete the Azure identities
 
+Run the following command with app ids of both created Azure AD applications.
+
 ```cli
-❯ az identity delete --name <scaler-identity-name> --resource-group <resource-group>
-❯ az identity delete --name <app-identity-name> --resource-group <resource-group>
+❯ az ad app delete --id <app-id>
 ```
 
 ### Uninstall KEDA

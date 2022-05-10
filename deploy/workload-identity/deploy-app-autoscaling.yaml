@@ -1,0 +1,25 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: trigger-auth-service-bus-orders
+spec:
+  podIdentity:
+    provider: azure-workload
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-scaler
+spec:
+  scaleTargetRef:
+    name: order-processor
+  # minReplicaCount: 0 Change to define how many minimum replicas you want
+  maxReplicaCount: 10
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      namespace: <namespace-name>
+      queueName: orders
+      messageCount: '5'
+    authenticationRef:
+      name: trigger-auth-service-bus-orders

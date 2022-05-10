@@ -4,6 +4,7 @@
     {
         ConnectionString,
         ServicePrinciple,
-        ManagedIdentity
+        PodIdentity,
+        WorkloadIdentity
     }
 }

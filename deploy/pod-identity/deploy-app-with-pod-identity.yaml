@@ -38,7 +38,7 @@ spec:
         image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
         env:
         - name: KEDA_SERVICEBUS_AUTH_MODE
-          value: ManagedIdentity
+          value: PodIdentity
         - name: KEDA_SERVICEBUS_HOST_NAME
           value: <namespace-name>.servicebus.windows.net
         - name: KEDA_SERVICEBUS_QUEUE_NAME

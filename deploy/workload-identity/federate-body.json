@@ -1,0 +1,9 @@
+{
+    "name": "kubernetes-federated-identity",
+    "issuer": "<service-account-issuer-url>",
+    "subject": "system:serviceaccount:<service-account-namespace>:<service-account-name>",
+    "description": "Kubernetes service account federated identity",
+    "audiences": [
+      "api://AzureADTokenExchange"
+    ]
+  }
