@@ -6,6 +6,7 @@ The message processor will receive a single message at a time (per instance), an
 We provide samples for the following scenarios:
 
 - [**Process Azure Service Bus Queue by using Azure AD Pod Identity**](pod-identity.md)
+- [**Process Azure Service Bus Queue by using Azure AD Workload Identity**](workload-identity.md)
 - [**Process Azure Service Bus Queue by using connection string authentication**](connection-string-scenario.md)
 
 ![Scenario](images/scenario.png)
