@@ -13,6 +13,7 @@ metadata:
   name: order-processor
   labels:
     app: order-processor
+    azure.workload.identity/use: "true"
 spec:
   selector:
     matchLabels:
