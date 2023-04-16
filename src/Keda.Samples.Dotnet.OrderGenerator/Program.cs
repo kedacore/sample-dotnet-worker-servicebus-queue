@@ -9,14 +9,15 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 {
     class Program
     {
-        private const string QueueName = "<queue-name>";
-        private const string ConnectionString = "<service-bus-connection-string>";
+        private static string QueueName = Environment.GetEnvironmentVariable("KEDA_SERVICEBUS_QUEUE_NAME");
+        private static string ConnectionString = Environment.GetEnvironmentVariable("KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING");
 
         static async Task Main(string[] args)
         {
             Console.WriteLine("Let's queue some orders, how many do you want?");
 
             var requestedAmount = DetermineOrderAmount();
+            Console.WriteLine($"{requestedAmount} orders are going to be queued in ${QueueName} queue");
             await QueueOrders(requestedAmount);
 
             Console.WriteLine("That's it, see you later!");
@@ -55,6 +56,27 @@ namespace Keda.Samples.Dotnet.OrderGenerator
 
         private static int DetermineOrderAmount()
         {
+            var requestedAmountFromEnvVariable = DetermineOrderAmountFromEnvVariable();
+            if (requestedAmountFromEnvVariable > 0) {
+                return requestedAmountFromEnvVariable;
+            }
+            var requestedAmountFromEnvVariableFromConsole = DetermineOrderAmountFromConsole();
+            return requestedAmountFromEnvVariableFromConsole;
+        }
+
+        private static int DetermineOrderAmountFromEnvVariable()
+        {
+           var OrderAmount = Environment.GetEnvironmentVariable("ORDER_AMOUNT");
+            if (int.TryParse(OrderAmount, out int orderAmount))
+            {
+                return orderAmount;
+            }
+            return 0; 
+        }
+
+        private static int DetermineOrderAmountFromConsole()
+        {
+
             var rawAmount = Console.ReadLine();
             if (int.TryParse(rawAmount, out int amount))
             {
@@ -62,7 +84,7 @@ namespace Keda.Samples.Dotnet.OrderGenerator
             }
 
             Console.WriteLine("That's not a valid amount, let's try that again");
-            return DetermineOrderAmount();
+            return DetermineOrderAmountFromConsole();
         }
     }
 }

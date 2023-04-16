@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-processor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: order-processor
+    {{- include "keda-servicebus-connection-string.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+      {{- include "keda-servicebus-connection-string.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: order-processor
+        {{- include "keda-servicebus-connection-string.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: order-processor
+        image: {{ .Values.orderProcessor.image }}
+        env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ConnectionString
+        - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+             name: secrets-order-consumer
+             key: servicebus-connectionstring
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: orders
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

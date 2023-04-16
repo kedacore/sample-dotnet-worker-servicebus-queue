@@ -1,0 +1,47 @@
+# Default values for keda-servicebus-connection-string.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# -- Resources configuration
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# -- Order process configuration
+orderProcessor:
+  # -- Service bus connection string with listen and send permissions
+  servicebusConnectionString: ""
+  # -- Image used by Deployment order-processor
+  image: ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
+
+# -- Order generator configuration
+orderGenerator:
+  # -- Number of orders that is going to be created in service bus for orders queue
+  orderAmount: 100
+  # -- Queue where the orders are going to be generated
+  queueName: "orders"
+  # -- Image used by Job order-generator
+  image: ghcr.io/kedacore/sample-dotnet-order-generator-servicebus:latest
+
+# -- Order consumer configuration
+orderConsumer:
+  # -- Service bus connection string with manage permission
+  servicebusConnectionString: ""

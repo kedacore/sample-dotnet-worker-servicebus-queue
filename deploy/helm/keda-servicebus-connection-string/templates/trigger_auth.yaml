@@ -1,0 +1,12 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: trigger-auth-service-bus-orders
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "keda-servicebus-connection-string.labels" . | nindent 4 }}
+spec:
+  secretTargetRef:
+  - parameter: connection
+    name: secrets-order-management
+    key: servicebus-order-management-connectionstring
