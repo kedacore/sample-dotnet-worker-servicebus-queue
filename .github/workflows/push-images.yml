@@ -34,3 +34,18 @@ jobs:
       run: docker build ./src/ --file ./src/Keda.Samples.DotNet.Web/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal:latest
     - name: Push the Docker image
       run: docker push ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal:latest
+  order_generator:
+    runs-on: ubuntu-latest
+    name: Order Generator
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker Login
+      uses: docker/login-action@v1.6.0
+      with:
+        registry: ghcr.io
+        username: kedacore
+        password: ${{ secrets.CONTAINER_REGISTRY_KEY }}
+    - name: Build the Docker image
+      run: docker build ./src/ --file ./src/Keda.Samples.Dotnet.OrderGenerator/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-order-generator-servicebus:latest
+    - name: Push the Docker image
+      run: docker push ghcr.io/kedacore/sample-dotnet-order-generator-servicebus:latest

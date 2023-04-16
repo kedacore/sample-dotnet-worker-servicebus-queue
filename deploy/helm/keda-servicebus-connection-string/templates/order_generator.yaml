@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: order-generator-{{ randAlphaNum 8 | lower }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: order-processor
+    {{- include "keda-servicebus-connection-string.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: order-generator
+        image: {{ .Values.orderGenerator.image }}
+        imagePullPolicy: Never
+        env:
+        - name: KEDA_SERVICEBUS_AUTH_MODE
+          value: ConnectionString
+        - name: KEDA_SERVICEBUS_QUEUE_NAME
+          value: "{{ .Values.orderGenerator.queueName }}"
+        - name: ORDER_AMOUNT
+          value: "{{ .Values.orderGenerator.orderAmount }}"
+        - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+              name: secrets-order-consumer
+              key: servicebus-connectionstring
+      restartPolicy: Never
+  backoffLimit: 4

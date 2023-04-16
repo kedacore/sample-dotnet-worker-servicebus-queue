@@ -1,0 +1,28 @@
+name: Terraform validation
+on:
+  - pull_request
+
+jobs:
+  validate-infra-as-code-connection-string:
+    name: Validate infra-as-code for connection-string scenario
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            infra-as-code:
+              - 'infra-as-code/connection-string/**'
+      
+      - uses: hashicorp/setup-terraform@v2
+        if: steps.filter.outputs.infra-as-code == 'true'
+        with:
+          terraform_version: 1.3.2
+
+      - name: Terraform validate
+        if: steps.filter.outputs.infra-as-code == 'true'
+        run: |
+          terraform -chdir=infra-as-code/connection-string init
+          terraform -chdir=infra-as-code/connection-string validate

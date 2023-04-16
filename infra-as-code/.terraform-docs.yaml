@@ -1,0 +1,23 @@
+---
+formatter: markdown
+
+header-from: main.tf
+
+sort:
+  enabled: true
+
+settings:
+  indent: 4
+  escape: false
+  default: false
+  required: false
+  type: true
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    [//]: # (BEGIN_TF_DOCS)
+    {{ .Content }}
+
+    [//]: # (END_TF_DOCS)

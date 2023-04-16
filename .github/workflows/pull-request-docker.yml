@@ -1,0 +1,55 @@
+name: Docker images validation
+on:
+  - pull_request
+
+jobs:
+  validate-dockerfile-order-processor:
+    name: Validate dockerfile order processor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'src/Keda.Samples.Dotnet.OrderProcessor/**'
+
+      - name: Build images
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: docker build ./src/ --file ./src/Keda.Samples.Dotnet.OrderProcessor/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-queue:latest
+
+  validate-dockerfile-portal:
+    name: Validate dockerfile portal
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'src/Keda.Samples.DotNet.Web/**'
+
+      - name: Build tools
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: docker build ./src/ --file ./src/Keda.Samples.DotNet.Web/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-worker-servicebus-portal:latest
+
+  validate-order-generator:
+    name: Validate dockerfile order-generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'src/Keda.Samples.Dotnet.OrderGenerator/**'
+
+      - name: Build the Docker image
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: docker build ./src/ --file ./src/Keda.Samples.Dotnet.OrderGenerator/Dockerfile --tag ghcr.io/kedacore/sample-dotnet-order-generator-servicebus:latest

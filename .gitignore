@@ -329,3 +329,12 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 /src/docker-compose.override.yml
+
+# Terraform related files
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+.terraform
+.terraform.lock.hcl
+terraform.plan
+terraform.destroy
