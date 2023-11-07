@@ -102,7 +102,7 @@ Once the authorization rule is created, we can list the connection string as fol
 Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/connection-string/deploy-app.yaml`:
 
 ```cli
-❯ echo -n "<connection string>" | base64
+❯ echo -n "<connection string>" | base64 -w 0
 ```
 
 ### Deploying our order processor
@@ -154,7 +154,7 @@ We have our secret configured, defined a `TriggerAuthentication` for KEDA to aut
 Now let's create everything:
 
 ```cli
-❯ kubectl apply -f .\deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+❯ kubectl apply -f ./deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 secret/secrets-order-consumer configured
 scaledobject.keda.sh/order-processor-scaler created
