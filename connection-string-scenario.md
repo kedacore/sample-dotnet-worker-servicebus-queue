@@ -69,25 +69,28 @@ This setup will go through creating an Azure Service Bus queue  and deploying th
 We will start by creating a new Azure Service Bus namespace:
 
 ```cli
-❯ az servicebus namespace create --name <namespace-name> --resource-group <resource-group-name> --sku basic
+az servicebus namespace create --name <namespace-name> --resource-group <resource-group-name> --sku basic
 ```
 
 After that, we create an `orders` queue in our namespace:
 
 ```cli
-❯ az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
+az servicebus queue create --namespace-name <namespace-name> --name orders --resource-group <resource-group-name>
 ```
 
 We need to be able to connect to our queue, so we create a new authorization rule with `Listen` permissions which our app will use to process messages.
 
 ```cli
-❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer --rights Listen
+az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer --rights Listen
 ```
 
 Once the authorization rule is created, we can list the connection string as following:
 
 ```cli
-❯ az servicebus queue authorization-rule keys list --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer
+az servicebus queue authorization-rule keys list --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer
+```
+Output:
+```output
 {
   "aliasPrimaryConnectionString": null,
   "aliasSecondaryConnectionString": null,
@@ -102,7 +105,7 @@ Once the authorization rule is created, we can list the connection string as fol
 Create a base64 representation of the connection string and update our Kubernetes secret in `deploy/connection-string/deploy-app.yaml`:
 
 ```cli
-❯ echo -n "<connection string>" | base64
+echo -n "<connection string>" | base64 -w 0
 ```
 
 ### Deploying our order processor
@@ -110,14 +113,20 @@ Create a base64 representation of the connection string and update our Kubernete
 We will start by creating a new Kubernetes namespace to run our order processor in:
 
 ```cli
-❯ kubectl create namespace keda-dotnet-sample
+kubectl create namespace keda-dotnet-sample
+```
+Output:
+```output
 namespace "keda-dotnet-sample" created
 ```
 
 Before we can connect to our queue, we need to create a secret which contains the Service Bus connection string to the queue.
 
 ```cli
-❯ kubectl apply -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
+kubectl apply -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
+```
+Output:
+```output
 deployment.apps/order-processor created
 secret/secrets-order-consumer created
 ```
@@ -125,8 +134,10 @@ secret/secrets-order-consumer created
 Once created, you should be able to retrieve the secret:
 
 ```cli
-❯ kubectl get secrets --namespace keda-dotnet-sample
-
+kubectl get secrets --namespace keda-dotnet-sample
+```
+Output:
+```output
 NAME                  TYPE                                  DATA      AGE
 secrets-order-consumer         Opaque                                1         24s
 ```
@@ -134,7 +145,10 @@ secrets-order-consumer         Opaque                                1         2
 Next to that, you will see that our deployment shows up with one pods created:
 
 ```cli
-❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
+kubectl get deployments --namespace keda-dotnet-sample -o wide
+```
+Output:
+```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
@@ -144,7 +158,7 @@ order-processor   1         1         1           1           49s       order-pr
 First things first, we will create a new authorization rule with `Management` permissions so that KEDA can monitor it.
 
 ```cli
-❯ az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name keda-monitor --rights Manage Send Listen
+az servicebus queue authorization-rule create --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name keda-monitor --rights Manage Send Listen
 ```
 
 Get and encode the connection string as mentioned above and store it in `servicebus-order-management-connectionstring` for our secret in `deploy-autoscaling.yaml`.
@@ -154,7 +168,10 @@ We have our secret configured, defined a `TriggerAuthentication` for KEDA to aut
 Now let's create everything:
 
 ```cli
-❯ kubectl apply -f .\deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+kubectl apply -f ./deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+```
+Output:
+```output
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 secret/secrets-order-consumer configured
 scaledobject.keda.sh/order-processor-scaler created
@@ -163,7 +180,10 @@ scaledobject.keda.sh/order-processor-scaler created
 Once created, you will see that our deployment shows up with no pods created:
 
 ```cli
-❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
+kubectl get deployments --namespace keda-dotnet-sample -o wide
+```
+Output:
+```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   0         0         0            0           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
@@ -179,20 +199,23 @@ The following job will send messages to the "orders" queue on which the order pr
 First you should clone the project:
 
 ```cli
-❯ git clone https://github.com/kedacore/sample-dotnet-worker-servicebus-queue
-❯ cd sample-dotnet-worker-servicebus-queue
+git clone https://github.com/kedacore/sample-dotnet-worker-servicebus-queue
+cd sample-dotnet-worker-servicebus-queue
 ```
 
 Configure a connection string with `Send` permissions in the tool via your favorite text editor, in this case via Visual Studio Code:
 
 ```cli
-❯ code .\src\Keda.Samples.Dotnet.OrderGenerator\Program.cs
+code .\src\Keda.Samples.Dotnet.OrderGenerator\Program.cs
 ```
 
 Next, you can run the order generator via the CLI:
 
 ```cli
-❯ dotnet run --project .\src\Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj
+dotnet run --project .\src\Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj
+```
+Output:
+```output
 Let's queue some orders, how many do you want?
 300
 Queuing order 719a7b19-f1f7-4f46-a543-8da9bfaf843d - A Hat for Reilly Davis
@@ -205,7 +228,10 @@ That's it, see you later!
 Now that the messages are generated, you'll see that KEDA starts automatically scaling out your deployment:
 
 ```cli
-❯ kubectl get deployments --namespace keda-dotnet-sample -o wide
+kubectl get deployments --namespace keda-dotnet-sample -o wide
+```
+Output:
+```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   8         8         8            4           4m        order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
 ```
@@ -213,7 +239,10 @@ order-processor   8         8         8            4           4m        order-p
 Eventually we will have 10 pods running processing messages in parallel:
 
 ```cli
-❯ kubectl get pods --namespace keda-dotnet-sample
+kubectl get pods --namespace keda-dotnet-sample
+```
+Output:
+```output
 NAME                              READY     STATUS    RESTARTS   AGE
 order-processor-65d5dd564-9wbph   1/1       Running   0          54s
 order-processor-65d5dd564-czlqb   1/1       Running   0          39s
@@ -230,7 +259,10 @@ order-processor-65d5dd564-v79x6   1/1       Running   0          39s
 You can look at the logs for a given processor as following:
 
 ```cli
-❯ kubectl logs order-processor-65d5dd564-httnf --namespace keda-dotnet-sample
+kubectl logs order-processor-65d5dd564-httnf --namespace keda-dotnet-sample
+```
+Output:
+```output
 info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
       Starting message pump at: 06/03/2019 12:32:14 +00:00
 info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
@@ -275,7 +307,10 @@ docker run -p 8080:80 -d -e OrderQueue__ConnectionString="KEDA_SERVICEBUS_QUEUE_
 To deploy the web application to your Kubernetes cluster:
 
 ```cli
-❯ kubectl apply -f .\deploy\deploy-web.yaml --namespace keda-dotnet-sample
+kubectl apply -f .\deploy\deploy-web.yaml --namespace keda-dotnet-sample
+```
+Output:
+```output
 deployment.apps/order-web created
 service/kedasampleweb created
 ```
@@ -283,7 +318,10 @@ service/kedasampleweb created
 Get the public IP by running:
 
 ```cli
-❯ kubectl get svc kedasampleweb --namespace keda-dotnet-sample
+kubectl get svc kedasampleweb --namespace keda-dotnet-sample
+```
+Output:
+```output
 NAME            TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)        AGE
 kedasampleweb   LoadBalancer   10.0.37.60   52.157.87.179   80:30919/TCP   117s
 ```
@@ -297,22 +335,22 @@ You'll need to wait a short while until the public IP is created and shown in th
 ### Delete the application
 
 ```cli
-❯ kubectl delete -f deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
-❯ kubectl delete -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
-❯ kubectl delete namespace keda-dotnet-sample
+kubectl delete -f deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
+kubectl delete -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
+kubectl delete namespace keda-dotnet-sample
 ```
 
 ### Delete the Azure Service Bus namespace
 
 ```cli
-❯ az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
+az servicebus namespace delete --name <namespace-name> --resource-group <resource-group-name>
 ```
 
 ### Uninstall KEDA
 
 ```cli
-❯ helm uninstall keda --namespace keda
-❯ kubectl delete customresourcedefinition  scaledobjects.keda.sh
-❯ kubectl delete customresourcedefinition  triggerauthentications.keda.sh
-❯ kubectl delete namespace keda
+helm uninstall keda --namespace keda
+kubectl delete customresourcedefinition  scaledobjects.keda.sh
+kubectl delete customresourcedefinition  triggerauthentications.keda.sh
+kubectl delete namespace keda
 ```
