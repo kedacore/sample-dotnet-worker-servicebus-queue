@@ -89,6 +89,7 @@ Once the authorization rule is created, we can list the connection string as fol
 ```cli
 az servicebus queue authorization-rule keys list --resource-group <resource-group-name> --namespace-name <namespace-name> --queue-name orders --name order-consumer
 ```
+Output:
 ```output
 {
   "aliasPrimaryConnectionString": null,
@@ -114,6 +115,7 @@ We will start by creating a new Kubernetes namespace to run our order processor 
 ```cli
 kubectl create namespace keda-dotnet-sample
 ```
+Output:
 ```output
 namespace "keda-dotnet-sample" created
 ```
@@ -123,6 +125,7 @@ Before we can connect to our queue, we need to create a secret which contains th
 ```cli
 kubectl apply -f deploy/connection-string/deploy-app.yaml --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 deployment.apps/order-processor created
 secret/secrets-order-consumer created
@@ -133,6 +136,7 @@ Once created, you should be able to retrieve the secret:
 ```cli
 kubectl get secrets --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 NAME                  TYPE                                  DATA      AGE
 secrets-order-consumer         Opaque                                1         24s
@@ -143,6 +147,7 @@ Next to that, you will see that our deployment shows up with one pods created:
 ```cli
 kubectl get deployments --namespace keda-dotnet-sample -o wide
 ```
+Output:
 ```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   1         1         1           1           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
@@ -165,6 +170,7 @@ Now let's create everything:
 ```cli
 kubectl apply -f ./deploy/connection-string/deploy-autoscaling.yaml --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 triggerauthentication.keda.sh/trigger-auth-service-bus-orders created
 secret/secrets-order-consumer configured
@@ -176,6 +182,7 @@ Once created, you will see that our deployment shows up with no pods created:
 ```cli
 kubectl get deployments --namespace keda-dotnet-sample -o wide
 ```
+Output:
 ```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   0         0         0            0           49s       order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
@@ -207,6 +214,7 @@ Next, you can run the order generator via the CLI:
 ```cli
 dotnet run --project .\src\Keda.Samples.Dotnet.OrderGenerator\Keda.Samples.Dotnet.OrderGenerator.csproj
 ```
+Output:
 ```output
 Let's queue some orders, how many do you want?
 300
@@ -222,6 +230,7 @@ Now that the messages are generated, you'll see that KEDA starts automatically s
 ```cli
 kubectl get deployments --namespace keda-dotnet-sample -o wide
 ```
+Output:
 ```output
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                                   SELECTOR
 order-processor   8         8         8            4           4m        order-processor   kedasamples/sample-dotnet-worker-servicebus-queue   app=order-processor
@@ -232,6 +241,7 @@ Eventually we will have 10 pods running processing messages in parallel:
 ```cli
 kubectl get pods --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 NAME                              READY     STATUS    RESTARTS   AGE
 order-processor-65d5dd564-9wbph   1/1       Running   0          54s
@@ -251,6 +261,7 @@ You can look at the logs for a given processor as following:
 ```cli
 kubectl logs order-processor-65d5dd564-httnf --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 info: Keda.Samples.Dotnet.OrderProcessor.OrdersQueueProcessor[0]
       Starting message pump at: 06/03/2019 12:32:14 +00:00
@@ -298,6 +309,7 @@ To deploy the web application to your Kubernetes cluster:
 ```cli
 kubectl apply -f .\deploy\deploy-web.yaml --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 deployment.apps/order-web created
 service/kedasampleweb created
@@ -308,6 +320,7 @@ Get the public IP by running:
 ```cli
 kubectl get svc kedasampleweb --namespace keda-dotnet-sample
 ```
+Output:
 ```output
 NAME            TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)        AGE
 kedasampleweb   LoadBalancer   10.0.37.60   52.157.87.179   80:30919/TCP   117s
